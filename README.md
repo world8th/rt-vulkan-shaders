@@ -1,2 +1,3 @@
-# rt-vulkan-shaders
-Separated GLSL shaders based ray tracing system 
+# Satellite CORE shader sub-system source
+
+Here is source code of shader sub-system.
