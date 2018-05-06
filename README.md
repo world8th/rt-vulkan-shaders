@@ -1,3 +1,3 @@
-# Satellite CORE shader sub-system source
+# Ray-tracing shader sub-system source
 
-Here is source code of shader sub-system.
+Here is source code of shader based ray-tracing sub-system.
