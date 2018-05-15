@@ -35,14 +35,13 @@ int cdelta( in int a, in int b ){
 
 int findSplit( in int first, in int last) {
     int commonPrefix = cdelta(first, last), split = first, nstep = last - first;
-    IFALL (nstep <= 1) { split = first; } else // if first == last
-    IFALL (commonPrefix >= 64) { split = (first + last)>>1; } else // if morton code equals
+    IFALL (commonPrefix >= 64 || nstep <= 1) { split = (split + last)>>1; } else // if morton code equals
     { //fast search SAH split
         [[dependency_infinite, dependency_length(4)]]
         do {
-            int newSplit = split + (nstep = (nstep + 1) >> 1), code = cdelta(first, newSplit);
+            int newSplit = split + (nstep = (nstep + 1) >> 1), code = cdelta(split, newSplit);
             split = code > commonPrefix ? newSplit : split;
-        } while (nstep > 1); 
+        } while (nstep > 1);
     }
     return clamp(split, first, last-1);
 }
