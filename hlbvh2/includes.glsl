@@ -34,7 +34,16 @@ layout ( std430, binding = 8, set = 0 )  buffer CountersB {
     int lCounter;
     int cCounter;
     int nCounter;
+
+    int aCounter2;
+    int lCounter2;
+    int cCounter2;
+    int nCounter2;
 };
+
+
+
+
 
 #ifdef USE_F32_BVH
 layout ( std430, binding = 12, set = 0 )  writeonly buffer bvhBoxesResultingB { vec4 bvhBoxesResulting[][4]; };
