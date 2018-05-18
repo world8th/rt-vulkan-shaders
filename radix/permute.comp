@@ -11,7 +11,7 @@ shared uint localHistogram[RADICES];
 #if defined(ENABLE_AMD_INSTRUCTION_SET) && defined(ENABLE_AMD_INT16)
 shared uint_rdc_wave_lcm _data[64];
 #else
-shared mediump uint_rdc_wave_lcm _data[128];
+shared lowp uint_rdc_wave_lcm _data[128];
 #endif
 
 #define key _data[Lane_Idx]

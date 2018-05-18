@@ -31,7 +31,7 @@
         #ifdef ENABLE_TRAVERSE_DATA
         #ifndef BVH_CREATION
             #ifdef USE_F32_BVH
-            layout ( std430, binding = 0, set = 1 ) readonly buffer bvhBoxesB { vec4 bvhBoxes[][4]; };
+            layout ( std430, binding = 0, set = 1 ) readonly buffer bvhBoxesB { highp vec4 bvhBoxes[][4]; };
             #else
             layout ( std430, binding = 0, set = 1 ) readonly buffer bvhBoxesB { uvec2 bvhBoxes[][4]; }; 
             #endif

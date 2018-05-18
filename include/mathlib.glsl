@@ -451,16 +451,26 @@ bool_ intersectCubeF32Single(const vec3 origin, const vec3 dr, inout bvec3_ sgn,
 // made by DevIL research group
 // also, optimized for RPM (Rapid Packed Math) https://radeon.com/_downloads/vega-whitepaper-11.6.17.pdf
 // compatible with NVidia GPU too
+
+#ifdef AMD_F16_BVH
 bvec2_ intersectCubeDual(in fvec3_ origin, inout fvec3_ dr, inout bvec3_ sgn, in fmat3x4_ tMinMax, in fmat3x4_ tCorrections, inout vec2 near, inout vec2 far) {
+#else
+bvec2_ intersectCubeDual(in highp fvec3_ origin, inout highp fvec3_ dr, inout bvec3_ sgn, in highp fmat3x4_ tMinMax, in highp fmat3x4_ tCorrections, inout vec2 near, inout vec2 far) {
+#endif
     tMinMax = fmat3x4_(
         fma(SSC(sgn.x) ? tMinMax[0] : tMinMax[0].zwxy, dr.xxxx, origin.xxxx),
         fma(SSC(sgn.y) ? tMinMax[1] : tMinMax[1].zwxy, dr.yyyy, origin.yyyy),
         fma(SSC(sgn.z) ? tMinMax[2] : tMinMax[2].zwxy, dr.zzzz, origin.zzzz)
     );
 
-    fvec2_ 
-        tFar  = min3_wrap(tMinMax[0].zw, tMinMax[1].zw, tMinMax[2].zw),
-        tNear = max3_wrap(tMinMax[0].xy, tMinMax[1].xy, tMinMax[2].xy);
+#ifdef AMD_F16_BVH
+    fvec2_
+#else
+    highp fvec2_ 
+#endif
+
+    tFar  = min3_wrap(tMinMax[0].zw, tMinMax[1].zw, tMinMax[2].zw),
+    tNear = max3_wrap(tMinMax[0].xy, tMinMax[1].xy, tMinMax[2].xy);
 
     // precise error correct
 #ifdef AMD_F16_BVH
@@ -476,6 +486,7 @@ bvec2_ intersectCubeDual(in fvec3_ origin, inout fvec3_ dr, inout bvec3_ sgn, in
      far = mix(inf, vec2( tFar), isCube);
     return isCube;
 }
+
 
 // BVH utility
 uint64_t bitfieldReverse64(in uint64_t a){uvec2 p = U2P(a);p=bitfieldReverse(p);return P2U(p.yx);}

@@ -6,6 +6,10 @@
 #define SIMPLIFIED_RAY_MANAGMENT
 
 #include "../include/driver.glsl"
+
+precision highp float;
+precision highp int;
+
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 
