@@ -422,14 +422,14 @@ vec2 fast32swap(in vec2 b64, in bool_ nswp) {
 // single float 32-bit box intersection
 // some ideas been used from http://www.cs.utah.edu/~thiago/papers/robustBVH-v2.pdf
 // compatible with AMD radeon min3 and max3
-bool_ intersectCubeF32Single(const vec3 origin, const vec3 dr, inout bvec3_ sgn, const mat3x2 tMinMaxMem, inout float near, inout float far) {
-    mat3x2 tMinMax = mat3x2(
+bool_ intersectCubeF32Single(const highp vec3 origin, const highp vec3 dr, inout bvec3_ sgn, const highp mat3x2 tMinMaxMem, inout float near, inout float far) {
+    highp mat3x2 tMinMax = mat3x2(
         fma(SSC(sgn.x) ? tMinMaxMem[0] : tMinMaxMem[0].yx, dr.xx, origin.xx),
         fma(SSC(sgn.y) ? tMinMaxMem[1] : tMinMaxMem[1].yx, dr.yy, origin.yy),
         fma(SSC(sgn.z) ? tMinMaxMem[2] : tMinMaxMem[2].yx, dr.zz, origin.zz)
     );
 
-    float 
+    highp float 
         tFar  = min3_wrap(tMinMax[0].y, tMinMax[1].y, tMinMax[2].y),
         tNear = max3_wrap(tMinMax[0].x, tMinMax[1].x, tMinMax[2].x);
 
