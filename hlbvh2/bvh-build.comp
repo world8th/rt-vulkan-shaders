@@ -30,7 +30,7 @@ initAtomicSubgroupIncFunction(_counters[2], cCounterDualInc, 2, int)
 
 #include "./bvh-build-general.glsl" // unified functions
 
-const int largeStageThreshold = 2;
+const int largeStageThreshold = 1;
 
 layout ( local_size_x = WORK_SIZE_BND ) in;
 
