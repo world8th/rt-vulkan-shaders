@@ -102,7 +102,7 @@ void splitNode(in int fID, in int side) {
 }
 
 
-const int largeStageThreshold = 4;
+const int largeStageThreshold = 2;
 
 layout ( local_size_x = WORK_SIZE_BND ) in;
 
