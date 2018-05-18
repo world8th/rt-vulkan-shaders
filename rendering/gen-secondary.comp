@@ -128,11 +128,7 @@ RayRework envShading(in RayRework rayTemplate, inout bool skipping) {
     // shade light
     if (lc >= 0 && (RayTargetLight(rayTemplate) == lc || RayType(rayTemplate) != 2) && SSC(RayActived(rayTemplate))) {
         // if diffuse, shade as non-shaded (absorb), because for it have direct light
-#ifdef USE_SIMPLIFIED_MODE
-        vec4 lcolor = vec4(1.f.xxx, 1.f);
-#else
         vec4 lcolor = vec4(getLightColor(lc), 1.f);
-#endif
 
 // depend by direct light flag enabled
 #ifdef DIRECT_LIGHT_ENABLED
@@ -237,12 +233,7 @@ void main() {
                     
                     // coefficents
                     float prom = clamp01(1.f - diffcolor.w); // transmission power
-
-#ifdef USE_SIMPLIFIED_MODE
-                    float spca = fmix(max3_vec(freflcolor), 1.f, metallic.x * (1.f - refly));
-#else
                     float spca = fmix(max3_vec(freflcolor), 1.f, metallic.x);
-#endif
 
                     // if environment shaded, do by defaultly as transaparent, by inactive
                     if ( rayState == 3 || rayState == 1 ) prom = 1.0f;
@@ -252,11 +243,7 @@ void main() {
                     RayRework enrollRay = envShading(currentRay, overflow);
 
                     // binarize/quantize specular and transparency
-#ifdef USE_SIMPLIFIED_MODE
-                    float qprom = qrand(prom), qspca = spca; // have no branching at now
-#else
                     float qprom = qrand(prom), qspca = qrand(spca);
-#endif
 
                     { // transparent rays 
                         RayRework transpRay = promised(enrollRay, tbn);

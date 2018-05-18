@@ -36,6 +36,7 @@
 //#define EXPERIMENTAL_DOF // no dynamic control supported
 #define ENABLE_PT_SUNLIGHT
 #define DIRECT_LIGHT_ENABLED
+//#define USE_OPTIMIZED_PT
 
 // sampling options
 //#define MOTION_BLUR

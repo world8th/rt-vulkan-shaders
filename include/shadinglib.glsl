@@ -156,14 +156,10 @@ RayRework reflection(in RayRework ray, in vec3 color, in mat3 tbn, in float refl
 #ifdef DISABLE_REFLECTIONS
     const int caustics_bounces = 0, reflection_bounces = 0; refly = 0.f;
 #else
-    #ifdef USE_SIMPLIFIED_MODE
-        const int caustics_bounces = 0, reflection_bounces = 1; refly = 0.f;
+    #ifdef USE_OPTIMIZED_PT
+        const int caustics_bounces = 0, reflection_bounces = 1;
     #else
-        #ifdef USE_OPTIMIZED_PT
-            const int caustics_bounces = 0, reflection_bounces = 1;
-        #else
-            const int caustics_bounces = 0, reflection_bounces = 2;
-        #endif
+        const int caustics_bounces = 0, reflection_bounces = 2;
     #endif
 #endif
 
