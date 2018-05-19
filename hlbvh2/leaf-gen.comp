@@ -35,9 +35,9 @@ void main() {
 
         const int itri = tri*3;//tri*9;
         mat3x4 triverts = mat3x4(
-            vec4(imageLoad(lvtx, itri+0).xyz, 1.f),
-            vec4(imageLoad(lvtx, itri+1).xyz, 1.f),
-            vec4(imageLoad(lvtx, itri+2).xyz, 1.f)
+            vec4(TLOAD(lvtx, itri+0).xyz, 1.f),
+            vec4(TLOAD(lvtx, itri+1).xyz, 1.f),
+            vec4(TLOAD(lvtx, itri+2).xyz, 1.f)
         );
 
         triverts = mat3x4(
@@ -50,9 +50,9 @@ void main() {
 #ifdef VTX_TRANSPLIT
         // transpose VTX
         mat3x3 vtxL = transpose(mat3(
-            imageLoad(lvtx, itri+0).xyz,
-            imageLoad(lvtx, itri+1).xyz,
-            imageLoad(lvtx, itri+2).xyz
+            TLOAD(lvtx, itri+0).xyz,
+            TLOAD(lvtx, itri+1).xyz,
+            TLOAD(lvtx, itri+2).xyz
         ));
 
         { // transpose type

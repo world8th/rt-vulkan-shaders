@@ -41,12 +41,16 @@
         #endif
         
         layout ( std430, binding = 3, set = 1 ) readonly buffer geometryUniformB { GeometryUniformStruct geometryUniform;} geometryBlock;
-        //#ifdef VTX_TRANSPLIT // for leaf gens
-        //    layout ( std430, binding = 7, set = 1 )  buffer lvtxB { float lvtx[]; };
-        //#else
-        //    layout ( std430, binding = 7, set = 1 )  readonly buffer lvtxB { float lvtx[]; };
-        //#endif
-        layout ( binding = 7, set = 1 ) uniform imageBuffer lvtx;
+        #ifdef VTX_TRANSPLIT // for leaf gens
+            layout ( binding = 7, set = 1 ) uniform imageBuffer lvtx;
+            #define TLOAD(img,t) imageLoad(img,t)
+            //layout ( std430, binding = 7, set = 1 )  buffer lvtxB { float lvtx[]; };
+        #else
+            layout ( binding = 8, set = 1 ) uniform samplerBuffer lvtx;
+            #define TLOAD(img,t) texelFetch(img,t)
+            //layout ( std430, binding = 7, set = 1 )  readonly buffer lvtxB { float lvtx[]; };
+        #endif
+        //layout ( binding = 7, set = 1 ) uniform imageBuffer lvtx;
     #endif
 #endif
 
@@ -100,9 +104,9 @@ float intersectTriangle(const vec3 orig, const mat3 M, const int axis, const int
         // gather patterns
         const int itri = tri*3;//tri*9;
         const mat3 ABC = mat3(
-            imageLoad(lvtx, itri+0).xyz-orig.xxx,
-            imageLoad(lvtx, itri+1).xyz-orig.yyy,
-            imageLoad(lvtx, itri+2).xyz-orig.zzz
+            TLOAD(lvtx, itri+0).xyz-orig.xxx,
+            TLOAD(lvtx, itri+1).xyz-orig.yyy,
+            TLOAD(lvtx, itri+2).xyz-orig.zzz
             //vec3(lvtx[itri+0], lvtx[itri+1], lvtx[itri+2])-orig.x,
             //vec3(lvtx[itri+3], lvtx[itri+4], lvtx[itri+5])-orig.y,
             //vec3(lvtx[itri+6], lvtx[itri+7], lvtx[itri+8])-orig.z
@@ -124,9 +128,9 @@ float intersectTriangle(const vec3 orig, const mat3 M, const int axis, const int
 float intersectTriangle(const vec3 orig, const vec3 dir, const int tri, inout vec2 uv, in bool _valid) {
     const int itri = tri*3;//tri*9;
     const mat3 vT = transpose(mat3(
-        imageLoad(lvtx, itri+0).xyz,
-        imageLoad(lvtx, itri+1).xyz,
-        imageLoad(lvtx, itri+2).xyz
+        TLOAD(lvtx, itri+0).xyz,
+        TLOAD(lvtx, itri+1).xyz,
+        TLOAD(lvtx, itri+2).xyz
         //vec3(lvtx[itri+0], lvtx[itri+1], lvtx[itri+2]),
         //vec3(lvtx[itri+3], lvtx[itri+4], lvtx[itri+5]),
         //vec3(lvtx[itri+6], lvtx[itri+7], lvtx[itri+8])
