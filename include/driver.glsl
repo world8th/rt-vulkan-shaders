@@ -2,21 +2,19 @@
 #define _DRIVER_H
 
 
-// control flow
-#extension GL_EXT_control_flow_attributes : enable
-
-// data format extensions
-#extension GL_AMD_gcn_shader : enable
-#extension GL_AMD_gpu_shader_half_float : enable
-#extension GL_ARB_gpu_shader_int64 : enable
-#extension GL_AMD_gpu_shader_int16 : enable
-
-// intrinsics extensions
+// AMuDe extensions
+#ifdef ENABLE_AMD_INSTRUCTION_SET
 #extension GL_AMD_shader_trinary_minmax : enable
-
-// texture extensions
 #extension GL_AMD_texture_gather_bias_lod : enable
 #extension GL_AMD_shader_image_load_store_lod : enable
+#extension GL_AMD_gcn_shader : enable
+#extension GL_AMD_gpu_shader_half_float : enable
+#extension GL_AMD_gpu_shader_int16 : enable
+#endif
+
+// ARB and ext
+#extension GL_ARB_gpu_shader_int64 : enable
+#extension GL_EXT_control_flow_attributes : enable
 #extension GL_EXT_shader_image_load_formatted : enable
 
 // subgroup operations
