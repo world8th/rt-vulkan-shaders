@@ -65,14 +65,14 @@
 */
 
 #if defined(ENABLE_AMD_INT16)
-highp uint M16(in uimageBuffer m, in uint i) { return imageLoad(m, int(i)).x; }
-uint M32(in uimageBuffer m, in uint i) { 
+highp uint M16(in usamplerBuffer m, in uint i) { return texelFetch(m, int(i)).x; }
+uint M32(in usamplerBuffer m, in uint i) { 
     uint _i2 = (i)<<1u; // division of index
     return packUint2x16(u16vec2(M16(m,_i2),M16(m,_i2|1))); // use regular uint16_t for packing
 }
 #else
-highp uint M16(in uimageBuffer m, in uint i) { return imageLoad(m, int(i)).x; }
-uint M32(in uimageBuffer m, in uint i) { 
+highp uint M16(in usamplerBuffer m, in uint i) { return texelFetch(m, int(i)).x; }
+uint M32(in usamplerBuffer m, in uint i) { 
     uint _i2 = (i)<<1u; // division of index
     return bitfieldInsert(bitfieldInsert(0u, M16(m,_i2), 0, 16), M16(m,_i2|1), 16, 16); // use bitfield insert hack
 }
