@@ -18,7 +18,7 @@
     layout ( std430, binding = 1, set = 0 ) buffer materialsB { int materials[]; };
     layout ( std430, binding = 2, set = 0 ) buffer vordersB { int vorders[]; };
     //layout ( std430, binding = 3, set = 0 ) buffer lvtxB { float lvtx[]; };
-    layout ( binding = 3, set = 0 ) uniform imageBuffer lvtx;
+    layout ( binding = 3, set = 0, rgba32f ) uniform imageBuffer lvtx;
     layout ( rgba32ui, binding = 4, set = 0 ) uniform uimage2D attrib_texture_out;
 #else
     layout ( std430, binding = 1, set = 1 ) readonly buffer materialsB { int materials[]; };
@@ -44,7 +44,7 @@
         
         layout ( std430, binding = 3, set = 1 ) readonly buffer geometryUniformB { GeometryUniformStruct geometryUniform;} geometryBlock;
         #ifdef VTX_TRANSPLIT // for leaf gens
-            layout ( binding = 7, set = 1 ) uniform imageBuffer lvtx;
+            layout ( binding = 7, set = 1, rgba32f ) uniform imageBuffer lvtx;
             #define TLOAD(img,t) imageLoad(img,t)
             //layout ( std430, binding = 7, set = 1 )  buffer lvtxB { float lvtx[]; };
         #else
@@ -52,7 +52,6 @@
             #define TLOAD(img,t) texelFetch(img,t)
             //layout ( std430, binding = 7, set = 1 )  readonly buffer lvtxB { float lvtx[]; };
         #endif
-        //layout ( binding = 7, set = 1 ) uniform imageBuffer lvtx;
     #endif
 #endif
 
