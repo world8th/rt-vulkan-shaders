@@ -126,8 +126,11 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
         torigTo = divW(mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(origin+direct, 1.0f))).xyz,
         dirproj = torigTo+torig;
 
-    float dirlenInv = 1.f / precIssue(length(dirproj));
-    dirproj *= dirlenInv;
+    // get vector length and normalize
+    float dirlen = length(dirproj);
+    dirproj = normalize(dirproj);
+
+    // invert vector for box intersection
     dirproj = 1.f.xxx / vec3(precIssue(dirproj.x), precIssue(dirproj.y), precIssue(dirproj.z));
 
     // limitation of distance
@@ -135,7 +138,7 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
 
     // initial state
     traverseState.defTriangleID = -1;
-    traverseState.distMult = 1.f/precIssue(dirlenInv);
+    traverseState.distMult = dirlen;
     traverseState.diffOffset = 0.f;
     traverseState.idx = SSC(valid) ? 0 : -1;
 #ifdef USE_STACKLESS_BVH
