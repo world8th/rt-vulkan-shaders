@@ -77,7 +77,8 @@ int aNormalized(in VirtualDataAccess vac) {
 
 
 // input data of vertex instance
-layout ( std430, binding = 0, set = 1 ) readonly buffer bufferSpaceB {INDEX16 bufferSpace[]; };
+//layout ( std430, binding = 0, set = 1 ) readonly buffer bufferSpaceB {INDEX16 bufferSpace[]; };
+layout ( r16ui, binding = 0, set = 1 )  uniform uimageBuffer bufferSpace;
 layout ( std430, binding = 1, set = 1 ) readonly buffer bufferRegionsB {uvec2 bufferRegions[]; };
 layout ( std430, binding = 2, set = 1 ) readonly buffer bufferViewsB {VirtualBufferView bufferViews[]; };
 layout ( std430, binding = 3, set = 1 ) readonly buffer dataFormatsB {VirtualDataAccess dataFormats[]; };
