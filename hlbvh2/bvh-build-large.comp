@@ -19,22 +19,14 @@ layout(push_constant) uniform PushBlock {
 
 #define cBuffer cnst.swap
 
-
-// shared memory counters
-//shared int _counters[8];
-//#define cBuffer _counters[3]
-
 // define function for increment
 //initAtomicSubgroupIncFunction(cBuffer == 1 ? aCounter2 : aCounter, aCounterInc, 1, int) // make choose by counter
-initAtomicSubgroupIncFunction(aCounter, _aCounterInc, 1, int)
+initAtomicSubgroupIncFunction(aCounter , _aCounterInc, 1, int)
 initAtomicSubgroupIncFunction(aCounter2, _aCounter2Inc, 1, int)
-
-initAtomicSubgroupIncFunction(lCounter, lCounterInc, 2, int)
-initAtomicSubgroupIncFunction(cCounter, cCounterInc, 1, int)
-initAtomicSubgroupIncFunction(cCounter, cCounterDualInc, 2, int)
-
-// hack with choice
-int aCounterInc(){ return cBuffer == 1 ? _aCounter2Inc() : _aCounterInc(); }
+initAtomicSubgroupIncFunction(lCounter ,  lCounterInc, 2, int)
+initAtomicSubgroupIncFunction(cCounter ,  cCounterInc, 1, int)
+initAtomicSubgroupIncFunction(cCounter ,  cCounterDualInc, 2, int)
+int aCounterInc() { return (cBuffer == 1 ? _aCounter2Inc() : _aCounterInc()); };
 
 #include "./bvh-build-general.glsl" // unified functions
 
