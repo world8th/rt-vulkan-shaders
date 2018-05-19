@@ -29,7 +29,7 @@ void main() {
 
         // get leaf data
         int lidx = globalID < wsize ? LeafIndices[globalID]-1 : -1;
-        ivec4 bvhmeta = lidx >= 0 ? (bvhMeta[lidx]-1) : ivec4(-1, -1, -1, -1); 
+        ivec4 bvhmeta = lidx >= 0 ? (imageLoad(bvhMeta, lidx)-1) : ivec4(-1, -1, -1, -1); 
         vec4 rbox[2] = {100000.f.xxxx, -100000.f.xxxx}; 
 
         // linking leafs
@@ -41,7 +41,7 @@ void main() {
 
         // save boxes
         if (lidx >= 0) {
-            bvhMeta[lidx] = bvhmeta+1;
+            imageStore(bvhMeta, lidx, bvhmeta+1);
             bvhBoxesWork[lidx] = rbox;
         }
     }

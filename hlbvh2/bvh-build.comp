@@ -53,8 +53,10 @@ void main() {
     // create initial (root) node
     if (threadID == 0) {
         int hid = lCounterInc();
-        bvhMeta[hid+0] = ivec4(1, bvhBlock.creatorUniform.leafCount, 0, 0);
-        bvhMeta[hid+1] = ivec4(0, 0, 0, 0);
+        imageStore(bvhMeta, hid+0, ivec4(1, bvhBlock.creatorUniform.leafCount, 0, 0));
+        imageStore(bvhMeta, hid+1, ivec4(0, 0, 0, 0));
+        //bvhMeta[hid+0] = ivec4(1, bvhBlock.creatorUniform.leafCount, 0, 0);
+        //bvhMeta[hid+1] = ivec4(0, 0, 0, 0);
         Actives[aCounterInc()][cBuffer] = hid+1;
     }
     LGROUP_BARRIER // stage sync

@@ -36,7 +36,9 @@
             #else
             layout ( std430, binding = 0, set = 1 ) readonly buffer bvhBoxesB { uvec2 bvhBoxes[][4]; }; 
             #endif
-            layout ( std430, binding = 5, set = 1 ) readonly buffer bvhMetaB { ivec4 bvhMeta[]; };
+            //layout ( std430, binding = 5, set = 1 ) readonly buffer bvhMetaB { ivec4 bvhMeta[]; };
+            layout ( binding = 5, set = 1 ) uniform isamplerBuffer bvhMeta;
+            //#define TLOAD(img,t) texelFetch(img,t)
         #endif
         #endif
         

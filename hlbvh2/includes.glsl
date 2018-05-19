@@ -51,8 +51,8 @@ layout ( std430, binding = 12, set = 0 )  writeonly buffer bvhBoxesResultingB { 
 layout ( std430, binding = 12, set = 0 )  writeonly buffer bvhBoxesResultingB { uvec2 bvhBoxesResulting[][4]; }; 
 #endif
 
-layout ( std430, binding = 11, set = 0 )  buffer bvhMetaB { ivec4 bvhMeta[]; };
-
+//layout ( std430, binding = 11, set = 0 )  buffer bvhMetaB { ivec4 bvhMeta[]; };
+layout ( binding = 11, set = 0 ) uniform iimageBuffer bvhMeta;
 
 struct BVHCreatorUniformStruct {
     mat4x4 transform;

@@ -13,9 +13,8 @@
 
 void unifyNodeBox(const int idx){
     // initial for unify box
-    ivec4 comp = bvhMeta[idx]-1; // meta of contributable
-    if (comp.x != comp.y && comp.x >= 0) 
-    {
+    ivec4 comp = imageLoad(bvhMeta, idx)-1; // meta of contributable
+    if (comp.x != comp.y && comp.x >= 0) {
         int lft = comp.x, rgh = comp.x+1, sibid = lft >> 1;
 
         // get contributors boxes
@@ -75,64 +74,8 @@ void main() {
             if ( idx >= 0 ) { unifyNodeBox(idx); } else { break; }
 
             // unify box for current and add parent
-            int pid = idx >= 0 ? (bvhMeta[idx].z-1) : -1;
+            int pid = idx >= 0 ? (imageLoad(bvhMeta, idx).z-1) : -1;
             idx = (pid >= 0 && atomicCompSwap(Flags[pid], 0, 1) == 1) ? pid : -1;
         }
     }
-
-/*
-    // initial counters
-    LGROUP_BARRIER
-    if (lID < 8) { _counters[lID] = 0; }
-    LGROUP_BARRIER
-
-    // move to work list
-    const int wsize = bvhBlock.creatorUniform.leafCount;
-    for (int w=0;w<wsize;w+=rng) {
-        SB_BARRIER
-        const int globalID = w + (wID * gS + lID);
-        IFALL (globalID >= wsize) break;
-
-        // add to queue list parent node
-        int idx = globalID < wsize ? atomicExchange(LeafIndices[globalID], 0)-1 : -1;
-        if (idx >= 0) { Actives[aCounterInc()][cBuffer] = idx+1; }
-    }
-
-    // sync work
-    LGROUP_BARRIER
-
-    // upcoming to root node
-    [[unroll, dependency_length(4)]]
-    for (int l=0;l<65536;l++) {
-        // check activity counter
-        const int asize = _counters[0];
-        IFALL (asize <= 0) break;
-
-        // switch buffer and reset counter
-        LGROUP_BARRIER
-        if (lID == 0) { cBuffer = 1-cBuffer; _counters[0] = 0; }
-        LGROUP_BARRIER
-
-        // unify boxes when possible
-        for (int w=0;w<asize;w+=rng) {
-            SB_BARRIER
-            
-            const int globalID = w + (wID * gS + lID);
-            IFALL (globalID >= wsize) break;
-
-            // unify boxes for parent
-            int idx = globalID < asize ? atomicExchange(Actives[globalID][1-cBuffer], 0)-1 : -1;
-            if ( idx >= 0 ) { unifyNodeBox(idx); }
-
-            // unify box for current and add parent
-            int pid = idx >= 0 ? (bvhMeta[idx].z-1) : -1;
-            if ( pid >= 0 && atomicCompSwap(Flags[pid], 0, 1) == 1 ) {
-                Actives[aCounterInc()][cBuffer] = pid+1; // add to contributors list
-            }
-        }
-
-        // sync work
-        LGROUP_BARRIER
-    }
-*/
 }

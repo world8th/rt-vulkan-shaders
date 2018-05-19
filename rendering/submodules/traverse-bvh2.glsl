@@ -182,7 +182,7 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
     bvhSpace.cutOut = geometrySpace.lastIntersection.z * traverseState.distMult - traverseState.diffOffset; 
     
     // begin of traverse BVH 
-    ivec4 cnode = traverseState.idx >= 0 ? (bvhMeta[traverseState.idx]-1) : (-1).xxxx;
+    ivec4 cnode = traverseState.idx >= 0 ? (texelFetch(bvhMeta, traverseState.idx)-1) : (-1).xxxx;
     for (int hi=0;hi<max_iteraction;hi++) {
         SB_BARRIER
         IFALL (traverseState.idx < 0) break; // if traverse can't live
@@ -230,7 +230,7 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
                         traverseState.idx = cnode.x + fmask;
                     }
 
-                    cnode = traverseState.idx >= 0 ? (bvhMeta[traverseState.idx]-1) : (-1).xxxx;
+                    cnode = traverseState.idx >= 0 ? (texelFetch(bvhMeta, traverseState.idx)-1) : (-1).xxxx;
                 }
 
             } 
@@ -251,7 +251,7 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
                 for (int bi=0;bi<64;bi++) {
                     if ((traverseState.bitStack&1ul)!=0ul || traverseState.bitStack==0ul) break;
                     traverseState.bitStack >>= 1;
-                    traverseState.idx = traverseState.idx >= 0 ? (bvhMeta[traverseState.idx].z-1) : -1;
+                    traverseState.idx = traverseState.idx >= 0 ? (texelFetch(bvhMeta, traverseState.idx).z-1) : -1;
                 }
 
                 // goto to sibling or break travers
@@ -269,7 +269,7 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
                     traverseState.idx = -1;
                 }
 #endif
-                cnode = traverseState.idx >= 0 ? (bvhMeta[traverseState.idx]-1) : (-1).xxxx;
+                cnode = traverseState.idx >= 0 ? (texelFetch(bvhMeta, traverseState.idx)-1) : (-1).xxxx;
             } _continue = false;
 
             IFANY (traverseState.defTriangleID >= 0 || traverseState.idx < 0) { SB_BARRIER break; }

@@ -34,7 +34,7 @@ void splitNode(in int fID, in int side) {
         Flags[prID] = 0; // reset flag of refit
 
         // splitting nodes
-        ivec4 _pdata = bvhMeta[prID]-1;
+        ivec4 _pdata = imageLoad(bvhMeta, prID)-1;
 
         [[flatten]]
         if (_pdata.x >= 0 && _pdata.y >= 0) {
@@ -49,9 +49,9 @@ void splitNode(in int fID, in int side) {
                 
                 // resolve branch
                 int hd = lCounterInc();
-                bvhMeta[prID] = ivec4(hd.xx+ivec2(0,1)+(1).xx, _pdata.zw+1);
-                bvhMeta[hd+0] = ivec4(transplit.xy, prID, -1)+1;
-                bvhMeta[hd+1] = ivec4(transplit.zw, prID, -1)+1;
+                imageStore(bvhMeta, prID, ivec4(hd.xx+ivec2(0,1)+(1).xx, _pdata.zw+1));
+                imageStore(bvhMeta, hd+0, ivec4(transplit.xy, prID, -1)+1);
+                imageStore(bvhMeta, hd+1, ivec4(transplit.zw, prID, -1)+1);
 
                 // add prefix to next task
                 Actives[aCounterInc()][cBuffer] = hd+1;

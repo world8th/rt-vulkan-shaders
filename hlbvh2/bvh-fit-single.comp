@@ -19,9 +19,8 @@
 
 void unifyNodeBox(const int idx){
     // initial for unify box
-    ivec4 comp = bvhMeta[idx]-1; // meta of contributable
-    if (comp.x != comp.y && comp.x >= 0) 
-    {
+    ivec4 comp = imageLoad(bvhMeta, idx)-1; // meta of contributable
+    if (comp.x != comp.y && comp.x >= 0) {
         int lft = comp.x, rgh = comp.x+1, sibid = lft >> 1;
 
         // get contributors boxes
@@ -110,7 +109,7 @@ void main() {
             if ( idx >= 0 ) { unifyNodeBox(idx); }
 
             // unify box for current and add parent
-            int pid = idx >= 0 ? (bvhMeta[idx].z-1) : -1;
+            int pid = idx >= 0 ? (imageLoad(bvhMeta, idx).z-1) : -1;
             if ( pid >= 0 && atomicCompSwap(Flags[pid], 0, 1) == 1 ) {
                 Actives[aCounterInc()][cBuffer] = pid+1; // add to contributors list
             }
