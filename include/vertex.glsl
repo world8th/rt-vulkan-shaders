@@ -14,10 +14,11 @@
 
 // for geometry accumulators
 #ifdef VERTEX_FILLING
-    layout ( std430, binding = 0, set = 0 )  buffer tcounterB { int tcounter[2]; };
-    layout ( std430, binding = 1, set = 0 )  buffer materialsB { int materials[]; };
-    layout ( std430, binding = 2, set = 0 )  buffer vordersB { int vorders[]; };
-    layout ( std430, binding = 3, set = 0 )  buffer lvtxB { float lvtx[]; };
+    layout ( std430, binding = 0, set = 0 ) buffer tcounterB { int tcounter[2]; };
+    layout ( std430, binding = 1, set = 0 ) buffer materialsB { int materials[]; };
+    layout ( std430, binding = 2, set = 0 ) buffer vordersB { int vorders[]; };
+    //layout ( std430, binding = 3, set = 0 ) buffer lvtxB { float lvtx[]; };
+    layout ( binding = 3, set = 0 ) uniform imageBuffer lvtx;
     layout ( rgba32ui, binding = 4, set = 0 ) uniform uimage2D attrib_texture_out;
 #else
     layout ( std430, binding = 1, set = 1 ) readonly buffer materialsB { int materials[]; };
@@ -40,11 +41,12 @@
         #endif
         
         layout ( std430, binding = 3, set = 1 ) readonly buffer geometryUniformB { GeometryUniformStruct geometryUniform;} geometryBlock;
-        #ifdef VTX_TRANSPLIT // for leaf gens
-            layout ( std430, binding = 7, set = 1 )  buffer lvtxB { float lvtx[]; };
-        #else
-            layout ( std430, binding = 7, set = 1 )  readonly buffer lvtxB { float lvtx[]; };
-        #endif
+        //#ifdef VTX_TRANSPLIT // for leaf gens
+        //    layout ( std430, binding = 7, set = 1 )  buffer lvtxB { float lvtx[]; };
+        //#else
+        //    layout ( std430, binding = 7, set = 1 )  readonly buffer lvtxB { float lvtx[]; };
+        //#endif
+        layout ( binding = 7, set = 1 ) uniform imageBuffer lvtx;
     #endif
 #endif
 
@@ -96,11 +98,14 @@ float intersectTriangle(const vec3 orig, const mat3 M, const int axis, const int
     float T = INFINITY;
     IFANY (valid) {
         // gather patterns
-        const int itri = tri*9;
+        const int itri = tri*3;//tri*9;
         const mat3 ABC = mat3(
-            vec3(lvtx[itri+0], lvtx[itri+1], lvtx[itri+2])-orig.x,
-            vec3(lvtx[itri+3], lvtx[itri+4], lvtx[itri+5])-orig.y,
-            vec3(lvtx[itri+6], lvtx[itri+7], lvtx[itri+8])-orig.z
+            imageLoad(lvtx, itri+0).xyz-orig.xxx,
+            imageLoad(lvtx, itri+1).xyz-orig.yyy,
+            imageLoad(lvtx, itri+2).xyz-orig.zzz
+            //vec3(lvtx[itri+0], lvtx[itri+1], lvtx[itri+2])-orig.x,
+            //vec3(lvtx[itri+3], lvtx[itri+4], lvtx[itri+5])-orig.y,
+            //vec3(lvtx[itri+6], lvtx[itri+7], lvtx[itri+8])-orig.z
         )*M;
 
         // watertight triangle intersection (our, GPU-GLSL adapted version)
@@ -117,11 +122,14 @@ float intersectTriangle(const vec3 orig, const mat3 M, const int axis, const int
 }
 
 float intersectTriangle(const vec3 orig, const vec3 dir, const int tri, inout vec2 uv, in bool _valid) {
-    const int itri = tri*9;
+    const int itri = tri*3;//tri*9;
     const mat3 vT = transpose(mat3(
-        vec3(lvtx[itri+0], lvtx[itri+1], lvtx[itri+2]),
-        vec3(lvtx[itri+3], lvtx[itri+4], lvtx[itri+5]),
-        vec3(lvtx[itri+6], lvtx[itri+7], lvtx[itri+8])
+        imageLoad(lvtx, itri+0).xyz,
+        imageLoad(lvtx, itri+1).xyz,
+        imageLoad(lvtx, itri+2).xyz
+        //vec3(lvtx[itri+0], lvtx[itri+1], lvtx[itri+2]),
+        //vec3(lvtx[itri+3], lvtx[itri+4], lvtx[itri+5]),
+        //vec3(lvtx[itri+6], lvtx[itri+7], lvtx[itri+8])
     ));
     const vec3 e1 = vT[1]-vT[0], e2 = vT[2]-vT[0];
     const vec3 h = cross(dir, e2);

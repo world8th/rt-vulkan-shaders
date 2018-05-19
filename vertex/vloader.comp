@@ -276,9 +276,10 @@ void main(){
                     ISTORE(attrib_texture_out, mosaicIdc(TEXCOORD_TXF, i), floatBitsToUint(vec4(texcoord[mi])));
 
                     // store vertex data
-                    lvtx[tidc*9+3*i+0] = vertice[mi].x;
-                    lvtx[tidc*9+3*i+1] = vertice[mi].y;
-                    lvtx[tidc*9+3*i+2] = vertice[mi].z;
+                    imageStore(lvtx, tidc*3+i, vec4(vertice[mi].xyz, 1.f));
+                    //lvtx[tidc*9+3*i+0] = vertice[mi].x;
+                    //lvtx[tidc*9+3*i+1] = vertice[mi].y;
+                    //lvtx[tidc*9+3*i+2] = vertice[mi].z;
                 }
             }
         }
