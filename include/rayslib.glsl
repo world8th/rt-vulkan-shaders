@@ -223,6 +223,7 @@ void accquireNodeOffload(in int block, in int bidx){
         RayActived(rayBlockNodes[block][nid].data, false_);
         RayBounce(rayBlockNodes[block][nid].data, 0);
         m16s(-1, blockIndiceHeader(block), currentInBlockPtr);
+        m16s(-1, blockPreparingHeader(block), currentInBlockPtr);
     } else {
         // reset current ray
         currentRay.dcolor = uvec2((0u).xx);
