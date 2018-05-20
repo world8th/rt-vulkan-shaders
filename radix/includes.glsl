@@ -10,11 +10,11 @@ uint Wave_Idx = 0;
 
 #ifdef INTEL_PLATFORM
 #undef Wave_Size
-#define Wave_Size 32
+#define Wave_Size 32u
 #endif
 
-
 #include "../include/ballotlib.glsl"
+
 
 // radices 4-bit
 #define BITS_PER_PASS 4
