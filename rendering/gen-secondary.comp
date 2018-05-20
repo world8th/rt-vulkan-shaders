@@ -245,20 +245,23 @@ void main() {
                     // binarize/quantize specular and transparency
                     float qprom = qrand(prom), qspca = qrand(spca);
 
+
+                    RayRework finalRay = enrollRay;
+
                     { // transparent rays 
                         RayRework transpRay = promised(enrollRay, tbn);
                         WriteColor(transpRay.dcolor, f16_f32(transpRay.dcolor) * (RayType(enrollRay) == 2 ? prom : qprom)); // shadows dims 
-                        invokeBlockForNodes(transpRay, transparentBlock, overwriteBlock);
+                        //invokeBlockForNodes(transpRay, transparentBlock, overwriteBlock); // don't over block
 
                         // if transparent ray no came
                         if (!SSC(RayActived(transpRay)) && qprom > 0.9999f) { qprom = prom; }
+                        finalRay = transpRay; // prefer transparent ray by default
                     }
 
                     // if incedent ray is diffuse or shadowed, don't distribute indirect light directly (it can be approximated, for example, VCT)
                     bool deepIndirectIlluminated = false;
                     //if (RayType(enrollRay) == 1) { diffcolor *= 0.f.xxxx; deepIndirectIlluminated = true;  }
                     // TODO: approximate indirect diffuses
-
 
                     // occopy 64 byte (64kb)
                     RayRework 
@@ -279,9 +282,16 @@ void main() {
                         qspca = spca; reflectionRay = reflection(enrollRay, clamp01(speccolor.xyz / precIssue(spca)) * qspca * (1.f - qprom), tbn, refly);
                     }
 
+
+                    // choice what ray will heading
+                    if (SSC(RayActived(reflectionRay)) && max3_vec(f16_f32(reflectionRay.dcolor).xyz) >= 0.00001f) finalRay = reflectionRay;
+                    if (SSC(RayActived(diffuseRay)) && max3_vec(f16_f32(diffuseRay.dcolor).xyz) >= 0.00001f) finalRay = diffuseRay;
+
+
                     { // diffuse rays from surface
-                        invokeBlockForNodes(reflectionRay, reflectionBlock, overwriteBlock);
-                        invokeBlockForNodes(diffuseRay, diffuseBlock, overwriteBlock);
+                        invalidateRay(finalRay, false);
+                        invokeBlockForNodes(finalRay, diffuseBlock, overwriteBlock);
+                        //invokeBlockForNodes(diffuseRay, diffuseBlock, overwriteBlock);
                     }
 
                     { // shadow rays from surface
@@ -291,21 +301,30 @@ void main() {
 
                     overwriteBlock = -1;
 
+                    // final emission 
+                    RayRework emisRay = enrollRay;
+
+                    // variants of emissions
+                    RayRework emRay = enrollRay;
+                    RayRework envRay = enrollRay;
+
                     // all environment and lighting blocks to finishing
                     { // environment (finish) rays
-                        RayRework envRay = enrollRay;
                         WriteColor(envRay.dcolor, f16_f32(envRay.dcolor) * qprom ); // shadows dims 
                         IF (RayActived(envRay)) WriteColor(envRay.dcolor, 0.0f.xxxx); // any actives inaccessible
                         RayActived(envRay, false_);
-                        invokeBlockForNodes(envRay, envBlock, overwriteBlock);
+                        //invokeBlockForNodes(envRay, envBlock, overwriteBlock);
                     }
                     
                     { // PBR emissions
-                        RayRework rayTemplate = emissive(enrollRay, emiscolor.xyz * (1.f - spca) * (1.f - qprom), tbn);
-                        IF (RayActived(rayTemplate)) WriteColor(rayTemplate.dcolor, 0.0f.xxxx); // any actives inaccessible
-                        invokeBlockForNodes(rayTemplate, emissionBlock, overwriteBlock);
+                        emRay = emissive(enrollRay, emiscolor.xyz * (1.f - spca) * (1.f - qprom), tbn);
+                        IF (RayActived(emRay)) WriteColor(emRay.dcolor, 0.0f.xxxx); // any actives inaccessible
+                        //invokeBlockForNodes(emRay, emissionBlock, overwriteBlock);
                     }
 
+                    // final emission
+                    emisRay = max3_vec(f16_f32(envRay.dcolor).xyz) >= 0.00001f ? envRay : emRay;
+                    invokeBlockForNodes(emisRay, emissionBlock, overwriteBlock);
                 }
             }
 

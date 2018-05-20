@@ -472,24 +472,26 @@ void invokeBlockForNodes(inout RayRework rayTemplate, inout int outNewBlock, ino
     bool occupyCriteria = SSC(RayActived(rayTemplate)) || !SSC(RayActived(rayTemplate)) && max3_vec(f16_f32(rayTemplate.dcolor).xyz) >= 0.00001f;
 
     // occupy early block
-    if (occupyCriteria && !confirmNodeOccupied(prevNonOccupiedBlock)) {
+    bool canBeOverride = occupyCriteria && prevNonOccupiedBlock >= 0 && !confirmNodeOccupied(prevNonOccupiedBlock);
+    if (canBeOverride) {
         storeRay(prevNonOccupiedBlock, rayTemplate);
         confirmNode(prevNonOccupiedBlock, SSC(RayActived(rayTemplate)));
         occupyCriteria = false;
     }
 
     // create block if not occupied 
-    createBlockOnce(outNewBlock, occupyCriteria && confirmNodeOccupied(prevNonOccupiedBlock));
+    createBlockOnce(outNewBlock, occupyCriteria && !canBeOverride);
 
     // occupy these block
     if (occupyCriteria && outNewBlock >= 0 && !confirmNodeOccupied(outNewBlock)) {
         storeRay(outNewBlock, rayTemplate);
         confirmNode(outNewBlock, SSC(RayActived(rayTemplate)));
+        occupyCriteria = false;
     }
 
     // recommend or not new block if have
     SB_BARRIER
-    bool prevOccopied = confirmNodeOccupied(prevNonOccupiedBlock) && int(outNewBlock) >= 0;
+    bool prevOccopied = !canBeOverride && int(outNewBlock) >= 0;
     prevNonOccupiedBlock = allInvoc(prevOccopied) ? int(outNewBlock) : int(prevNonOccupiedBlock);
     SB_BARRIER
 }
