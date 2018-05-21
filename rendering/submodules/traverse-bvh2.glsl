@@ -11,9 +11,10 @@
 
 
 const int max_iteraction = 8192;
-const int stackPageCount = 8;
-const int localStackSize = 4;
-
+//const int stackPageCount = 8;
+//const int localStackSize = 4;
+const int stackPageCount = 4;
+const int localStackSize = 8;
 
 // dedicated BVH stack
 //struct NodeCache { ivec4 stackPages[stackPageCount]; };
@@ -28,8 +29,9 @@ int stackPtr = 0, pagePtr = 0, cacheID = 0, _r0 = -1;
 
 #ifndef USE_STACKLESS_BVH
 //#define lstack localStack[Local_Idx]
-//shared ivec4 localStack[WORK_SIZE];
-ivec4 lstack = ivec4(-1,-1,-1,-1);
+shared ivec4 localStack[WORK_SIZE][2];
+#define lstack localStack[Local_Idx]
+//ivec4 lstack = ivec4(-1,-1,-1,-1);
 
 int loadStack(){
     // load previous stack page
@@ -37,12 +39,13 @@ int loadStack(){
         int page = --pagePtr;
         if (page >= 0 && page < stackPageCount) {
             stackPtr = localStackSize-1;
-            lstack = imageLoad(texelPages, cacheID*stackPageCount + page);
+            lstack = ivec4[2](imageLoad(texelPages, (cacheID*stackPageCount + page)*2+0), imageLoad(texelPages, (cacheID*stackPageCount + page)*2+1));
         }
     }
 
     // fast-stack
-    int val = exchange(lstack.x, -1); lstack = lstack.yzwx;
+    int val = exchange(lstack[0].x, -1); //lstack = lstack.yzwx;
+    lstack = ivec4[2](ivec4(lstack[0].yzw, lstack[1].x), ivec4(lstack[1].yzw, lstack[0].x));
     return val;
 }
 
@@ -52,12 +55,15 @@ void storeStack(in int val){
         int page = pagePtr++;
         if (page >= 0 && page < stackPageCount) { 
             stackPtr = 1;
-            imageStore(texelPages, cacheID*stackPageCount + page, lstack);
+            imageStore(texelPages, (cacheID*stackPageCount + page)*2+0, lstack[0]);
+            imageStore(texelPages, (cacheID*stackPageCount + page)*2+1, lstack[1]);
         }
     }
 
     // fast-stack
-    lstack = lstack.wxyz; lstack.x = val;
+    //lstack = lstack.wxyz; lstack.x = val;
+    lstack = ivec4[2](ivec4(lstack[1].w, lstack[0].xyz), ivec4(lstack[0].w, lstack[1].xyz)); 
+    lstack[0].x = val;
 }
 
 bool stackIsFull() { return stackPtr >= localStackSize && pagePtr >= stackPageCount; }
@@ -66,8 +72,9 @@ bool stackIsEmpty() { return stackPtr <= 0 && pagePtr < 0; }
 
 
 
-shared _RAY_TYPE rayCache[WORK_SIZE];
-#define currentRayTmp rayCache[Local_Idx]
+//shared _RAY_TYPE rayCache[WORK_SIZE];
+//#define currentRayTmp rayCache[Local_Idx]
+_RAY_TYPE currentRayTmp;
 
 struct BvhTraverseState {
     int idx, defTriangleID;
@@ -119,6 +126,7 @@ void traverseBvh2(in bool_ valid, inout _RAY_TYPE rayIn) {
 
     // reset stack
     stackPtr = 0, pagePtr = 0;
+    lstack = ivec4[2]((-1).xxxx, (-1).xxxx);
 
     // test constants
     vec3 
