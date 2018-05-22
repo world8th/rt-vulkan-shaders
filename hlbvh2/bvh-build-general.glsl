@@ -1,26 +1,26 @@
 int cdelta( in int a, in int b ){
+    uvec2 acode = Mortoncodes[a], bcode = Mortoncodes[b];
 #if defined(INTEL_PLATFORM)
-    uvec2 acode = Mortoncodes[a], bcode = Mortoncodes[b];
-    acode.x = a, bcode.x = b;
-    return nlz(acode^bcode);
-#else 
-    uvec2 acode = Mortoncodes[a], bcode = Mortoncodes[b];
+    int pfx = 32 + nlz(acode^bcode);
+#else
     int pfx = nlz(acode^bcode);
-    return pfx + (pfx < 64 ? 0 : nlz(a^b));
 #endif
+    return pfx + (pfx < 64 ? 0 : nlz(a^b));
 }
 
-int findSplit( in int first, in int last) {
-    int commonPrefix = cdelta(first, last), split = first, nstep = last - first;
-    IFALL (commonPrefix >= 64 || nstep <= 1) { split = (split + last)>>1; } else // if morton code equals
-    { //fast search SAH split
+int findSplit( in int left, in int right ) {
+    int split = left, nstep = right - left, nsplit = split + nstep;
+    int commonPrefix = cdelta(split, nsplit);
+    if (commonPrefix >= 64 || nstep <= 1) { // if morton code equals or so small range
+        split = (split + nsplit)>>1;
+    } else { //fast search SAH split
         [[dependency_infinite, dependency_length(4)]]
         do {
-            int newSplit = split + (nstep = (nstep + 1) >> 1), code = cdelta(split, newSplit);
-            split = code > commonPrefix ? newSplit : split;
+            nstep = (nstep + 1) >> 1, nsplit = split + nstep;
+            if (cdelta(split, nsplit) > commonPrefix) { split = nsplit; }
         } while (nstep > 1);
     }
-    return clamp(split, first, last-1);
+    return clamp(split, left, right-1);
 }
 
 void splitNode(in int fID, in int side) {
