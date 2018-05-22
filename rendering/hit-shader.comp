@@ -282,7 +282,7 @@ void main() {
 
             // simple mode (alternate)
             //hitp.albedo.xy = packHalf4x16(vec4(0.f, 0.f, 0.f, diffuse.w)).xy;
-            //hitp.emission.xy = packHalf4x16(emission.xyzw + vec4(diffuse.xyz * max(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)) * vec3(4.f.xxx), 0.f), 1.f)).xy;
+            //hitp.emission.xy = packHalf4x16(emission.xyzw + vec4(diffuse.xyz * max(fma(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)), 0.5f, 0.5) * vec3(2.f.xxx), 0.f), 1.f)).xy;
             //hitp.metallicRoughness.xy = packHalf4x16(vec4(0.f, spc.z, 0.f, 0.f).xyzw).xy;
 
             // additional validation of hit (hit point interpolated offset test)
