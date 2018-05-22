@@ -317,7 +317,7 @@ void main() {
                     }
                     
                     { // PBR emissions
-                        emRay = emissive(enrollRay, emiscolor.xyz * (1.f - spca) * (1.f - qprom), tbn);
+                        emRay = emissive(enrollRay, emiscolor.xyz * (1.f - qprom), tbn);
                         IF (RayActived(emRay)) WriteColor(emRay.dcolor, 0.0f.xxxx); // any actives inaccessible
                         //invokeBlockForNodes(emRay, emissionBlock, overwriteBlock);
                     }

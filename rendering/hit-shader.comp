@@ -271,6 +271,9 @@ void main() {
                 hitp.normalHeight.xyz = normal.xyz;
             }
 
+            // equate with diffuses
+            spc.yz = mix(spc.yz, vec2(spc.y, 0.f), pow(spc.y, 4.f));
+
             // normalize normal again
             hitp.normalHeight.xyz = normalize(hitp.normalHeight.xyz);
             hitp.emission.xy = packHalf4x16(emission.xyzw).xy;

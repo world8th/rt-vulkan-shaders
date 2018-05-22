@@ -163,6 +163,7 @@ RayRework reflection(in RayRework ray, in vec3 color, in mat3 tbn, in float refl
     #endif
 #endif
 
+    //if ( RayType(ray) == 3 ) RayDL(ray, true_); // allow direct speculars
     if ( RayType(ray) == 1 ) RayDL(ray, true_); // allow to caustics light
     RayBounce(ray, min(RayType(ray)==1?caustics_bounces:reflection_bounces, max(RayBounce(ray) - (RayType(ray)==3?0:1), 0)));
     if ( RayType(ray) != 2 ) RayType(ray, 0); // reflection ray transfer (primary)
