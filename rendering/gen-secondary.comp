@@ -266,27 +266,29 @@ void main() {
                     // occopy 64 byte (64kb)
                     RayRework 
                         diffuseRay = diffuse(enrollRay, diffcolor.xyz * (1.f - qspca) * (1.f - qprom), tbn),
-                        reflectionRay = reflection(enrollRay, clamp01(speccolor.xyz / spca) * qspca * (1.f - qprom), tbn, refly);
+                        reflectionRay = reflection(enrollRay, speccolor.xyz * qspca * (1.f - qprom), tbn, refly);
 
                     // pre-filtering of quant rays
-                    invalidateRay(diffuseRay, false); 
+                    invalidateRay(diffuseRay, false);
                     invalidateRay(reflectionRay, false);
 
-                    // if reflection ray can't done own role, give to diffuse 
-                    if (!SSC(RayActived(reflectionRay)) && qspca > 0.99999f) { 
-                        qspca = spca; diffuseRay = diffuse(enrollRay, diffcolor.xyz * (1.f - qspca) * (1.f - qprom), tbn);
-                    }
-
                     // if diffuse ray can't done own role, give to reflection 
-                    if (!SSC(RayActived(diffuseRay)) && qspca < 0.00001f) {
-                        qspca = spca; reflectionRay = reflection(enrollRay, clamp01(speccolor.xyz / precIssue(spca)) * qspca * (1.f - qprom), tbn, refly);
+                    if (!SSC(RayActived(diffuseRay)) /*&& qspca < 0.00001f*/) {
+                        qspca = spca;
+                        reflectionRay = reflection(enrollRay, speccolor.xyz / precIssue(spca) * qspca * (1.f - qprom), tbn, refly);
+                        invalidateRay(reflectionRay, false);
                     }
 
+                    // if reflection ray can't done own role, give to diffuse 
+                    if (!SSC(RayActived(reflectionRay)) /*&& qspca > 0.99999f*/) { 
+                        qspca = spca;
+                        diffuseRay = diffuse(enrollRay, diffcolor.xyz / precIssue(1.f - spca) * (1.f - qspca) * (1.f - qprom), tbn);
+                        invalidateRay(diffuseRay, false);
+                    }
 
                     // choice what ray will heading
-                    if (SSC(RayActived(reflectionRay)) && max3_vec(f16_f32(reflectionRay.dcolor).xyz) >= 0.00001f) finalRay = reflectionRay;
                     if (SSC(RayActived(diffuseRay)) && max3_vec(f16_f32(diffuseRay.dcolor).xyz) >= 0.00001f) finalRay = diffuseRay;
-
+                    if (SSC(RayActived(reflectionRay)) && max3_vec(f16_f32(reflectionRay.dcolor).xyz) >= 0.00001f) finalRay = reflectionRay;
 
                     { // diffuse rays from surface
                         invalidateRay(finalRay, false);
