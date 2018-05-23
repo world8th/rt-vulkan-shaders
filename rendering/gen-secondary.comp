@@ -234,8 +234,8 @@ void main() {
                     vec3 diffcolorRef = diffcolor.xyz * (1.f - spwr); // no extra divion and multiply with "prior"
 
                     // correction coefficents (may inaccurate in most cases)
-                    speccolor.xyz *= (1.f / prio);
-                    diffcolor.xyz *= 1.f - (spwr + prio) + (spwr / prio); //(1.f - spwr) / (1.f - prio);
+                    speccolor.xyz *= 1.f / prio;
+                    diffcolor.xyz *= 1.f + fma(spwr, prio, -spwr) / (1.f - prio); //(1.f - spwr) / (1.f - prio);
 
                     // coefficents
                     float prom = 1.f - diffcolor.w; // transmission power
