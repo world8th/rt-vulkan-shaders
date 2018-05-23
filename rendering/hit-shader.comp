@@ -303,7 +303,7 @@ void main() {
             
             hitp.albedo.xy = packHalf4x16(vec4(0.f, 0.f, 0.f, diffuse.w)).xy;
             hitp.emission.xy = packHalf4x16(diffuseWithEmission);
-            //hitp.specularGlossiness = packHalf4x16(vec4(specularGlossiness.xyz, 0.f));
+            hitp.specularGlossiness = packHalf4x16(vec4(specularGlossiness.xyz, 0.f));
 #endif
 
             // additional validation of hit (hit point interpolated offset test)
