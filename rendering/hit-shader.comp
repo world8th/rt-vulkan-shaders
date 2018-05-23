@@ -286,8 +286,9 @@ void main() {
             vec3 fresnelColor = clamp01(fmix(max_fresnel_color * 0.9f, min_fresnel_color * 0.04f, fresnel.xxx));
             vec3 specularColor = clamp01(mix(fresnelColor, diffuse.xyz, metallic.xxx)); // use correct specular
 
-            float conversion = 1.0f - pow(roughness, 6.f);
-            specularColor.xyz *= conversion; // convert roughness to diffuse
+            //float conversion = 1.f; // no conversion variant, and true version, but latest tinygltf forcely uses metallic 1.f, roughness 1.f as diffuses
+            float conversion = 1.f - pow(roughness, 6.f); // convert roughness to diffuse
+            specularColor.xyz *= conversion;
             diffuse.xyz *= (1.f - metallic * conversion); // dim diffuse by metallic
 
             vec4 specularGlossiness = vec4(specularColor, roughness);
