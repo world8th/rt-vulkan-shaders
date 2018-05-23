@@ -248,11 +248,6 @@ void main() {
                     RayRework enrollRay = envShading(currentRay, overflow);
 
                     // binarize/quantize specular and transparency
-#ifndef SIMPLE_RT_MODE
-                    float dpwr = max3_vec(diffcolor.xyz);
-                    equatePowers(speccolor.xyz, diffcolor.xyz, spca, dpwr);
-#endif
-
                     float qprom = qrand(prom), qspca = qrand(spca);
                     RayRework finalRay = enrollRay;
 
