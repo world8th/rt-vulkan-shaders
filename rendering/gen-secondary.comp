@@ -71,9 +71,9 @@ int invokeSurface(inout bool overflow) {
     IF (hit.payloadID > 0 && wasHit >= 0) { // if none, make as transparent
         HitPayload hitp = hitPayload[hit.payloadID-1];
         compositedHit.uvt = hit.uvt;
-        compositedHit.albedo = f16_f32(hitp.albedo);
-        compositedHit.emission = f16_f32(hitp.emission);
-        compositedHit.specularGlossiness = f16_f32(hitp.specularGlossiness);
+        compositedHit.albedo = hitp.albedo;
+        compositedHit.emission = hitp.emission;
+        compositedHit.specularGlossiness = hitp.specularGlossiness;
         compositedHit.normalHeight = hitp.normalHeight;
         compositedHit.tangent = hit.tangent;
         compositedHit.bitangent = hit.bitangent;
