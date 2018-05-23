@@ -227,19 +227,23 @@ void main() {
 
                     float spwr = clamp01(max3_vec(speccolor.xyz)); // specular power
                     float dpwr = clamp01(max3_vec(diffcolor.xyz));
-                    float prio = clamp01(max(spwr / dpwr, spwr));
+                    float prio = clamp01(max(min(clamp01(spwr / dpwr), 0.9f), spwr));
 
                     // accurate version (no extra divison)
                     vec3 speccolorRef = speccolor.xyz;                // no extra divion and multiply with "prior"
                     vec3 diffcolorRef = diffcolor.xyz * (1.f - spwr); // no extra divion and multiply with "prior"
 
                     // correction coefficents (may inaccurate in most cases)
-                    speccolor.xyz *= 1.f / prio;
-                    diffcolor.xyz *= 1.f + fma(spwr, prio, -spwr) / (1.f - prio); //(1.f - spwr) / (1.f - prio);
+                    speccolor.xyz *= (1.f / prio);
+                    diffcolor.xyz *= (1.f - spwr) / (1.f - prio);
 
                     // coefficents
                     float prom = 1.f - diffcolor.w; // transmission power
+#ifdef USE_TRUE_METHOD
+                    float spca = spwr;
+#else
                     float spca = prio; // power of specularity
+#endif
 
                     // if environment shaded, do by defaultly as transaparent, by inactive
                     if ( rayState == 3 || rayState == 1 ) prom = 1.0f;
@@ -249,13 +253,17 @@ void main() {
                     RayRework enrollRay = envShading(currentRay, overflow);
 
                     // binarize/quantize specular and transparency
+#ifdef USE_TRUE_METHOD
+                    float qprom = qrand(prom), qspca = spca;
+#else
                     float qprom = qrand(prom), qspca = qrand(spca);
+#endif
                     RayRework finalRay = enrollRay;
 
                     { // transparent rays 
                         RayRework transpRay = promised(enrollRay, tbn);
                         WriteColor(transpRay.dcolor, f16_f32(transpRay.dcolor) * (RayType(enrollRay) == 2 ? prom : qprom)); // shadows dims 
-
+                        invalidateRay(transpRay, false);
                         // if transparent ray no came
                         //if (!SSC(RayActived(transpRay))) { qprom = prom; }
                         finalRay = transpRay; // prefer transparent ray by default
@@ -263,20 +271,30 @@ void main() {
 
                     // occopy 64 byte (64kb)
                     float gloss = speccolor.w; // roughness
+#ifdef USE_TRUE_METHOD
+                    RayRework 
+                        diffuseRay = diffuse(enrollRay, clamp01(diffcolorRef * (1.f - qprom)), tbn),
+                        reflectionRay = reflection(enrollRay, clamp01(speccolorRef * (1.f - qprom)), tbn, gloss);
+#else
                     RayRework 
                         diffuseRay = diffuse(enrollRay, clamp01(diffcolor.xyz * (1.f - qspca) * (1.f - qprom)), tbn),
                         reflectionRay = reflection(enrollRay, clamp01(speccolor.xyz * qspca * (1.f - qprom)), tbn, gloss);
+#endif
 
                     // pre-filtering of quant rays
                     invalidateRay(diffuseRay, false);
                     invalidateRay(reflectionRay, false);
 
                     // choice what ray will heading
-                    if (SSC(RayActived(diffuseRay)) && max3_vec(f16_f32(diffuseRay.dcolor).xyz) >= 0.00001f) finalRay = diffuseRay;
+#ifdef USE_TRUE_METHOD
+                    invokeBlockForNodes(reflectionRay, reflectionBlock, overwriteBlock);
+                    invokeBlockForNodes(diffuseRay, diffuseBlock, overwriteBlock);
+#else
                     if (SSC(RayActived(reflectionRay)) && max3_vec(f16_f32(reflectionRay.dcolor).xyz) >= 0.00001f) finalRay = reflectionRay;
+                    if (SSC(RayActived(diffuseRay)) && max3_vec(f16_f32(diffuseRay.dcolor).xyz) >= 0.00001f) finalRay = diffuseRay;
+#endif
 
                     { // diffuse rays from surface
-                        invalidateRay(finalRay, false);
                         invokeBlockForNodes(finalRay, diffuseBlock, overwriteBlock);
                     }
 
