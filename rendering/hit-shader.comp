@@ -179,6 +179,14 @@ shared HitPayload hitPayloadCache[WORK_SIZE];
 #endif
 
 void main() {
+
+    // constants
+    const float IOR = 1.400f;
+    const float diffuse_min_importance = 0.5f;
+    const float reflect_min_importance = 0.5f;
+    const vec3 max_fresnel_color = toLinear(vec3(1.f));
+    const vec3 min_fresnel_color = toLinear(vec3(1.f));
+
     int wsize = int(arcounter.hT);
     int wcount = min(tiled(wsize, int(gl_WorkGroupSize.x)), 1000000);
     bool overflow = false;
@@ -271,19 +279,28 @@ void main() {
                 hitp.normalHeight.xyz = normal.xyz;
             }
 
-            // equate with diffuses
-            spc.yz = mix(spc.yz, vec2(spc.y, 0.f), pow(spc.y, 4.f));
+            // convert metallic roughness to glossiness specular PBR model
+            float roughness = clamp01(spc.y), metallic = clamp01(spc.z);
+            float fresnel = clamp(pow(abs(dot(dcts(cray.cdirect.xy), normal.xyz)), IOR - 1.f), 0.0f, 1.0f);
+
+            vec3 fresnelColor = clamp01(fmix(max_fresnel_color * 0.9f, min_fresnel_color * 0.04f, fresnel.xxx));
+            vec3 specularColor = mix(fresnelColor, clamp01(diffuse.xyz / precIssue(max3_vec(diffuse.xyz))), metallic.xxx);
+            specularColor *= 1.0f - pow(roughness, 4.f); // convert roughness to diffuse
+
+            vec4 specularGlossiness = vec4(specularColor, roughness);
 
             // normalize normal again
             hitp.normalHeight.xyz = normalize(hitp.normalHeight.xyz);
             hitp.emission.xy = packHalf4x16(emission.xyzw).xy;
             hitp.albedo.xy = packHalf4x16(diffuse.xyzw).xy;
-            hitp.metallicRoughness.xy = packHalf4x16(vec4(spc.yz, 0.f, 0.f).xyzw).xy;
+            hitp.specularGlossiness = packHalf4x16(specularGlossiness);
 
+#ifdef SIMPLE_RT_MODE
             // simple mode (alternate)
-            //hitp.albedo.xy = packHalf4x16(vec4(0.f, 0.f, 0.f, diffuse.w)).xy;
-            //hitp.emission.xy = packHalf4x16(emission.xyzw + vec4(diffuse.xyz * max(fma(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)), 0.5f, 0.5) * vec3(2.f.xxx), 0.f), 1.f)).xy;
-            //hitp.metallicRoughness.xy = packHalf4x16(vec4(0.f, spc.z, 0.f, 0.f).xyzw).xy;
+            hitp.albedo.xy = packHalf4x16(vec4(0.f, 0.f, 0.f, diffuse.w)).xy;
+            hitp.emission.xy = packHalf4x16(emission.xyzw + vec4(diffuse.xyz * max(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)) * vec3(3.f.xxx), 0.f), 1.f)).xy;
+            //hitp.specularGlossiness = packHalf4x16(vec4(specularGlossiness.xyz, 0.f));
+#endif
 
             // additional validation of hit (hit point interpolated offset test)
             if (!overflow && globalID >= 0) 

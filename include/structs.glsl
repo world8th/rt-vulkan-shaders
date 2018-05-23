@@ -110,7 +110,7 @@ struct HitData {
 struct HitPayload {
     // hit shaded data
     vec4 normalHeight;
-    uvec2 metallicRoughness, unk16;
+    uvec2 specularGlossiness, unk16;
     uvec2 emission, albedo;
 };
 

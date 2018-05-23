@@ -26,7 +26,7 @@
 struct SurfaceUnpacked {
      vec4 uvt; // UV, distance, triangle
      vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
-     vec4 metallicRoughness;
+     vec4 specularGlossiness;
      vec4 tangent;
      vec4 bitangent;
 
@@ -60,7 +60,7 @@ int invokeSurface(inout bool overflow) {
     compositedHit.emission = vec4(0.f);
     compositedHit.albedo = vec4(0.f,0.f,0.f,0.f);
     compositedHit.normalHeight = vec4(0.f);
-    compositedHit.metallicRoughness = vec4(0.f);
+    compositedHit.specularGlossiness = vec4(0.f);
     compositedHit.tangent = vec4(0.f);
 
     // if hit was had
@@ -73,7 +73,7 @@ int invokeSurface(inout bool overflow) {
         compositedHit.uvt = hit.uvt;
         compositedHit.albedo = f16_f32(hitp.albedo);
         compositedHit.emission = f16_f32(hitp.emission);
-        compositedHit.metallicRoughness.xy = f16_f32(hitp.metallicRoughness).xy;
+        compositedHit.specularGlossiness = f16_f32(hitp.specularGlossiness);
         compositedHit.normalHeight = hitp.normalHeight;
         compositedHit.tangent = hit.tangent;
         compositedHit.bitangent = hit.bitangent;
@@ -164,7 +164,14 @@ LOCAL_SIZE_LAYOUT;
 
 
 void main() {
-    //#define wsize RAY_BLOCK samplerUniform.blockCount
+
+    // constants
+    const float IOR = 1.400f;
+    const float diffuse_min_importance = 0.5f;
+    const float reflect_min_importance = 0.5f;
+    const vec3 max_fresnel_color = toLinear(vec3(1.f));
+    const vec3 min_fresnel_color = toLinear(vec3(1.f));
+
     int wsize = RAY_BLOCK samplerUniform.blockCount;
     int wcsize = int(gl_WorkGroupSize.x) / int(Wave_Size_RT);
     int wcount = min(tiled(wsize, wcsize), 1000000);
@@ -209,13 +216,6 @@ void main() {
                     // get surface information
                     int rayState = invokeSurface(overflow);
 
-                    // constants
-                    const float IOR = 1.400f;
-                    const float diffuse_min_importance = 0.5f;
-                    const float reflect_min_importance = 0.5f;
-                    const vec3 max_fresnel_color = toLinear(vec3(1.f));
-                    const vec3 min_fresnel_color = toLinear(vec3(1.f));
-
                     // get normals
                     vec3 bitangent = compositedHit.bitangent.xyz;
                     vec3 tangent = compositedHit.tangent.xyz;
@@ -225,15 +225,14 @@ void main() {
                     // get texture composition data
                     vec4 diffcolor = compositedHit.albedo;
                     vec4 emiscolor = compositedHit.emission;
-                    float refly = compositedHit.metallicRoughness.x; // roughness
-                    float metallic = sqrt(compositedHit.metallicRoughness.y); // metallic
 
-                    vec3 freflcolor = fmix(max_fresnel_color * 0.9f, min_fresnel_color * 0.04f, clamp(pow(abs(dot(dcts(currentRay.cdirect.xy), normal)), IOR - 1.f), 0.0f, 1.0f).xxx);
-                    vec3 speccolor = fmix(freflcolor * mix(1.f.xxx, diffcolor.xyz, 0.04f.xxx), diffcolor.xyz + emiscolor.xyz, metallic.xxx);
-                    
+                    float gloss = compositedHit.specularGlossiness.w; // roughness
+                    float spwr = max3_vec(compositedHit.specularGlossiness.xyz); // specular power
+                    vec3 speccolor = clamp01(compositedHit.specularGlossiness.xyz / precIssue(spwr));
+
                     // coefficents
                     float prom = clamp01(1.f - diffcolor.w); // transmission power
-                    float spca = fmix(max3_vec(freflcolor), 1.f, metallic.x);
+                    float spca = clamp01(spwr); // power of specularity
 
                     // if environment shaded, do by defaultly as transaparent, by inactive
                     if ( rayState == 3 || rayState == 1 ) prom = 1.0f;
@@ -266,7 +265,7 @@ void main() {
                     // occopy 64 byte (64kb)
                     RayRework 
                         diffuseRay = diffuse(enrollRay, diffcolor.xyz * (1.f - qspca) * (1.f - qprom), tbn),
-                        reflectionRay = reflection(enrollRay, speccolor.xyz * qspca * (1.f - qprom), tbn, refly);
+                        reflectionRay = reflection(enrollRay, speccolor.xyz * qspca * (1.f - qprom), tbn, gloss);
 
                     // pre-filtering of quant rays
                     invalidateRay(diffuseRay, false);
@@ -275,7 +274,7 @@ void main() {
                     // if diffuse ray can't done own role, give to reflection 
                     if (!SSC(RayActived(diffuseRay)) /*&& qspca < 0.00001f*/) {
                         qspca = spca;
-                        reflectionRay = reflection(enrollRay, speccolor.xyz / precIssue(spca) * qspca * (1.f - qprom), tbn, refly);
+                        reflectionRay = reflection(enrollRay, speccolor.xyz / precIssue(spca) * qspca * (1.f - qprom), tbn, gloss);
                         invalidateRay(reflectionRay, false);
                     }
 
@@ -317,11 +316,14 @@ void main() {
                         //invokeBlockForNodes(envRay, envBlock, overwriteBlock);
                     }
                     
-                    { // PBR emissions
+                    { 
+                        // PBR emissions
                         emRay = emissive(enrollRay, emiscolor.xyz * (1.f - qprom), tbn);
 
+#ifdef SIMPLE_RT_MODE
                         // if you want use simple mode with correct reflection coefficents, uncomment this line
-                        //WriteColor(emRay.dcolor, f16_f32(emRay.dcolor) * (1.f - spca));
+                        WriteColor(emRay.dcolor, f16_f32(emRay.dcolor) * (1.f - spca));
+#endif
 
                         IF (RayActived(emRay)) WriteColor(emRay.dcolor, 0.0f.xxxx); // any actives inaccessible
                         //invokeBlockForNodes(emRay, emissionBlock, overwriteBlock);

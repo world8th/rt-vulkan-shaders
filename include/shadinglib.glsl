@@ -150,11 +150,11 @@ RayRework emissive(in RayRework ray, in vec3 color, in mat3 tbn) {
 }
 
 
-RayRework reflection(in RayRework ray, in vec3 color, in mat3 tbn, in float refly) {
+RayRework reflection(in RayRework ray, in vec3 color, in mat3 tbn, in float gloss) {
     WriteColor(ray.dcolor, f16_f32(ray.dcolor) * vec4(color, 1.f));
 
 #ifdef DISABLE_REFLECTIONS
-    const int caustics_bounces = 0, reflection_bounces = 0; refly = 0.f;
+    const int caustics_bounces = 0, reflection_bounces = 0; gloss = 0.f;
 #else
     #ifdef USE_OPTIMIZED_PT
         const int caustics_bounces = 0, reflection_bounces = 1;
@@ -171,7 +171,7 @@ RayRework reflection(in RayRework ray, in vec3 color, in mat3 tbn, in float refl
     vec3 siden = faceforward(tbn[2], dcts(ray.cdirect.xy), tbn[2]);
     vec3 sdr = randomCosineNormalOriented(rayStreams[RayBounce(ray)].superseed[2], siden);
     sdr = faceforward(sdr, sdr, -siden);
-    sdr = normalize(fmix(reflect(dcts(ray.cdirect.xy), siden), sdr, clamp(sqrt(random()) * (refly), 0.0f, 1.0f).xxx));
+    sdr = normalize(fmix(sdr, reflect(dcts(ray.cdirect.xy), siden), clamp(pow(1.f - random()*gloss, 2.f), 0.0f, 1.0f).xxx));
     sdr = faceforward(sdr, sdr, -siden);
 
     ray.cdirect.xy = lcts(sdr);

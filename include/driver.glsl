@@ -35,6 +35,7 @@
 #define ENABLE_PT_SUNLIGHT
 #define DIRECT_LIGHT_ENABLED
 //#define USE_OPTIMIZED_PT
+//#define SIMPLE_RT_MODE
 
 // sampling options
 //#define MOTION_BLUR
