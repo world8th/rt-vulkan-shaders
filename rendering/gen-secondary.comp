@@ -170,14 +170,6 @@ void equatePowers(inout vec3 srcColor, inout vec3 dstColor, inout float srcFacto
 
 
 void main() {
-
-    // constants
-    const float IOR = 1.400f;
-    const float diffuse_min_importance = 0.5f;
-    const float reflect_min_importance = 0.5f;
-    const vec3 max_fresnel_color = toLinear(vec3(1.f));
-    const vec3 min_fresnel_color = toLinear(vec3(1.f));
-
     int wsize = RAY_BLOCK samplerUniform.blockCount;
     int wcsize = int(gl_WorkGroupSize.x) / int(Wave_Size_RT);
     int wcount = min(tiled(wsize, wcsize), 1000000);
