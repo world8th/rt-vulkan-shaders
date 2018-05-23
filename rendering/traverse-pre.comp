@@ -9,8 +9,8 @@
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
-#include "../include/random.glsl"
 #include "../include/mathlib.glsl"
+#include "../include/random.glsl"
 
 LOCAL_SIZE_LAYOUT;
 

@@ -7,18 +7,18 @@ uint subHash = 0;
 
 
 float floatConstruct( in uint m ) {
-    return clamp(fract(uintBitsToFloat((m & 0x007FFFFFu) | 0x3F800000u)), 0.00001f, 0.99999f);
+    return clamp01(fract(uintBitsToFloat((m & 0x007FFFFFu) | 0x3F800000u)));
 }
 
 vec2 float2Construct( in uvec2 m ) {
-    return clamp(vec2(floatConstruct(m.x), floatConstruct(m.y)), 0.00001f.xx, 0.99999f.xx);
+    return clamp01(vec2(floatConstruct(m.x), floatConstruct(m.y)));
 }
 
 highp vec2 half2Construct ( in uint m ) {
 #ifdef ENABLE_AMD_INSTRUCTION_SET
-    return clamp(vec2(fract(unpackFloat2x16((m & 0x03FF03FFu) | (0x3C003C00u)))), 0.00001f, 0.99999f);
+    return clamp01(vec2(fract(unpackFloat2x16((m & 0x03FF03FFu) | (0x3C003C00u)))));
 #else
-    return clamp(fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))), 0.00001f, 0.99999f);
+    return clamp01(fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))));
 #endif
 }
 
@@ -121,6 +121,6 @@ vec3 randomCosineNormalOriented(in uvec2 superseed, in vec3 normal){
     return ( up * normal ) + ( cos(around) * over * perpendicular1 ) + ( sin(around) * over * perpendicular2 );
 }
 
-float qrand(in float r){ return random() < r ? 1.f : 0.f; }
+float qrand(in float r){ return clamp01(random() < r ? 1.f : 0.f); }
 
 #endif

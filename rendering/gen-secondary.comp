@@ -18,8 +18,8 @@
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
-#include "../include/random.glsl"
 #include "../include/mathlib.glsl"
+#include "../include/random.glsl"
 #include "../include/shadinglib.glsl"
 #include "./submodules/environment.glsl"
 
@@ -223,14 +223,23 @@ void main() {
                     // get texture composition data
                     vec4 diffcolor = compositedHit.albedo;
                     vec4 emiscolor = compositedHit.emission;
+                    vec4 speccolor = compositedHit.specularGlossiness;
 
-                    float gloss = compositedHit.specularGlossiness.w; // roughness
-                    float spwr = clamp01(precIssue(max3_vec(compositedHit.specularGlossiness.xyz))); // specular power
-                    vec3 speccolor = clamp01(compositedHit.specularGlossiness.xyz / spwr);
+                    float spwr = clamp01(max3_vec(speccolor.xyz)); // specular power
+                    float dpwr = clamp01(max3_vec(diffcolor.xyz));
+                    float prio = clamp01(max(spwr / dpwr, spwr));
+
+                    // accurate version (no extra divison)
+                    vec3 speccolorRef = speccolor.xyz;                // no extra divion and multiply with "prior"
+                    vec3 diffcolorRef = diffcolor.xyz * (1.f - spwr); // no extra divion and multiply with "prior"
+
+                    // correction coefficents (may inaccurate in most cases)
+                    speccolor.xyz *= (1.f / prio);
+                    diffcolor.xyz *= 1.f - (spwr + prio) + (spwr / prio); //(1.f - spwr) / (1.f - prio);
 
                     // coefficents
-                    float prom = clamp01(1.f - diffcolor.w); // transmission power
-                    float spca = spwr; // power of specularity
+                    float prom = 1.f - diffcolor.w; // transmission power
+                    float spca = prio; // power of specularity
 
                     // if environment shaded, do by defaultly as transaparent, by inactive
                     if ( rayState == 3 || rayState == 1 ) prom = 1.0f;
@@ -246,28 +255,17 @@ void main() {
                     { // transparent rays 
                         RayRework transpRay = promised(enrollRay, tbn);
                         WriteColor(transpRay.dcolor, f16_f32(transpRay.dcolor) * (RayType(enrollRay) == 2 ? prom : qprom)); // shadows dims 
-                        //invokeBlockForNodes(transpRay, transparentBlock, overwriteBlock); // don't over block
 
                         // if transparent ray no came
-                        if (!SSC(RayActived(transpRay)) && qprom > 0.9999f) { qprom = prom; }
+                        //if (!SSC(RayActived(transpRay))) { qprom = prom; }
                         finalRay = transpRay; // prefer transparent ray by default
                     }
 
-                    // if incedent ray is diffuse or shadowed, don't distribute indirect light directly (it can be approximated, for example, VCT)
-                    bool deepIndirectIlluminated = false;
-                    //if (RayType(enrollRay) == 1) { diffcolor *= 0.f.xxxx; deepIndirectIlluminated = true;  }
-                    // TODO: approximate indirect diffuses
-
                     // occopy 64 byte (64kb)
-#ifdef SIMPLE_RT_MODE
+                    float gloss = speccolor.w; // roughness
                     RayRework 
-                        diffuseRay = diffuse(enrollRay, 0.f.xxx * diffcolor.xyz * (1.f - spca) * (1.f - qprom), tbn),
-                        reflectionRay = reflection(enrollRay, speccolor.xyz * spca * (1.f - qprom), tbn, gloss);
-#else
-                    RayRework 
-                        diffuseRay = diffuse(enrollRay, diffcolor.xyz * (1.f - qspca) * (1.f - qprom), tbn),
-                        reflectionRay = reflection(enrollRay, speccolor.xyz * qspca * (1.f - qprom), tbn, gloss);
-#endif
+                        diffuseRay = diffuse(enrollRay, clamp01(diffcolor.xyz * (1.f - qspca) * (1.f - qprom)), tbn),
+                        reflectionRay = reflection(enrollRay, clamp01(speccolor.xyz * qspca * (1.f - qprom)), tbn, gloss);
 
                     // pre-filtering of quant rays
                     invalidateRay(diffuseRay, false);
@@ -283,7 +281,7 @@ void main() {
                     }
 
                     { // shadow rays from surface
-                        RayRework shadowRay = directLight(0, enrollRay, diffcolor.xyz * (1.f - spca) * (1.f - prom), tbn);
+                        RayRework shadowRay = directLight(0, enrollRay, clamp01(diffcolorRef * (1.f - prom)), tbn);
                         invokeBlockForNodes(shadowRay, shadowBlock, overwriteBlock);
                     }
 

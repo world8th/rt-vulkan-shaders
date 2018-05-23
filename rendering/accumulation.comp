@@ -10,8 +10,8 @@
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
-#include "../include/random.glsl"
 #include "../include/mathlib.glsl"
+//#include "../include/random.glsl"
 #include "../include/ballotlib.glsl"
 
 LOCAL_SIZE_LAYOUT;

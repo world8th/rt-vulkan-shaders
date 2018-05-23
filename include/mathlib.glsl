@@ -194,9 +194,11 @@ bvec4 not(in bvec4 a) { return bvec4(!a.x, !a.y, !a.z, !a.w); }
 void mixed(inout float src, inout float dst, in float coef) { dst *= coef; src *= 1.0f - coef; }
 void mixed(inout vec3 src, inout vec3 dst, in float coef) { dst *= coef; src *= 1.0f - coef; }
 void mixed(inout vec3 src, inout vec3 dst, in vec3 coef) { dst *= coef; src *= 1.0f - coef; }
-vec3 clamp01(in vec3 c) {return clamp(c,vec3(0.f),vec3(1.f));};
-vec4 clamp01(in vec4 c) {return clamp(c,vec4(0.f),vec4(1.f));};
-float clamp01(in float c) {return clamp(c,0.f,1.f);};
+
+float clamp01(in float c) {return clamp(c, 0.000001f.x,    0.999999f.x);    };
+vec2  clamp01(in vec2 c)  {return clamp(c, 0.000001f.xx,   0.999999f.xx);   };
+vec3  clamp01(in vec3 c)  {return clamp(c, 0.000001f.xxx,  0.999999f.xxx);  };
+vec4  clamp01(in vec4 c)  {return clamp(c, 0.000001f.xxxx, 0.999999f.xxxx); };
 
 // matrix math (simular DX12)
 vec4 mult4(in vec4 vec, in mat4 tmat) { return tmat * vec; }

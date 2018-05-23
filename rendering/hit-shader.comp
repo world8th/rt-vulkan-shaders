@@ -11,8 +11,8 @@
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
-#include "../include/random.glsl"
 #include "../include/mathlib.glsl"
+#include "../include/random.glsl"
 
 
 vec3 lightCenter(in int i) {
@@ -281,12 +281,11 @@ void main() {
 
             // convert metallic roughness to glossiness specular PBR model
             float roughness = clamp01(spc.y), metallic = clamp01(spc.z);
-            float fresnel = clamp(pow(abs(dot(dcts(cray.cdirect.xy), normal.xyz)), IOR - 1.f), 0.0f, 1.0f);
+            float fresnel = clamp01(pow(abs(dot(dcts(cray.cdirect.xy), normal.xyz)), IOR - 1.f));
 
-            vec3 fresnelColor = clamp01(fmix(max_fresnel_color * 0.9f, min_fresnel_color * 0.04f, fresnel.xxx));
+            vec3 fresnelColor = clamp01(fmix(max_fresnel_color * 0.8f, min_fresnel_color * 0.04f, fresnel.xxx));
             vec3 specularColor = clamp01(mix(fresnelColor, diffuse.xyz, metallic.xxx)); // use correct specular
             diffuse.xyz *= (1.f - metallic); // dim diffuse by metallic
-
             vec4 specularGlossiness = vec4(specularColor, roughness);
 
             // normalize normal again
