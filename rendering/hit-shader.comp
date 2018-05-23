@@ -284,8 +284,11 @@ void main() {
             float fresnel = clamp(pow(abs(dot(dcts(cray.cdirect.xy), normal.xyz)), IOR - 1.f), 0.0f, 1.0f);
 
             vec3 fresnelColor = clamp01(fmix(max_fresnel_color * 0.9f, min_fresnel_color * 0.04f, fresnel.xxx));
-            vec3 specularColor = mix(fresnelColor, clamp01(diffuse.xyz / precIssue(max3_vec(diffuse.xyz))), metallic.xxx);
-            specularColor *= 1.0f - pow(roughness, 4.f); // convert roughness to diffuse
+            vec3 specularColor = clamp01(mix(fresnelColor, diffuse.xyz, metallic.xxx)); // use correct specular
+
+            float conversion = 1.0f - pow(roughness, 6.f);
+            specularColor.xyz *= conversion; // convert roughness to diffuse
+            diffuse.xyz *= (1.f - metallic * conversion); // dim diffuse by metallic
 
             vec4 specularGlossiness = vec4(specularColor, roughness);
 
@@ -297,14 +300,17 @@ void main() {
 
 #ifdef SIMPLE_RT_MODE
             // simple mode (alternate)
+            vec4 simpleDiffuse = vec4(diffuse.xyz * max(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)) * vec3(3.f.xxx), 0.f), 1.f);
+            simpleDiffuse *= 1.f - max3_vec(specularColor.xyz);
+            vec4 diffuseWithEmission = emission.xyzw + simpleDiffuse;
+            
             hitp.albedo.xy = packHalf4x16(vec4(0.f, 0.f, 0.f, diffuse.w)).xy;
-            hitp.emission.xy = packHalf4x16(emission.xyzw + vec4(diffuse.xyz * max(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)) * vec3(3.f.xxx), 0.f), 1.f)).xy;
+            hitp.emission.xy = packHalf4x16(diffuseWithEmission);
             //hitp.specularGlossiness = packHalf4x16(vec4(specularGlossiness.xyz, 0.f));
 #endif
 
             // additional validation of hit (hit point interpolated offset test)
-            if (!overflow && globalID >= 0) 
-            {
+            if (!overflow && globalID >= 0) {
                 int pid = hit.payloadID-1; if (pid < 0) pid = atomicIncIT();
                 hitPayload[pid] = hitp;
                 cray.origin.w = intBitsToFloat(globalID+1); // save hit index to ray

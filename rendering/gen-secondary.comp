@@ -163,6 +163,12 @@ RayRework envShading(in RayRework rayTemplate, inout bool skipping) {
 LOCAL_SIZE_LAYOUT;
 
 
+
+void equatePowers(inout vec3 srcColor, inout vec3 dstColor, inout float srcFactor, inout float dstFactor) {
+    // impossible to equate, i have no enough math
+}
+
+
 void main() {
 
     // constants
@@ -227,12 +233,12 @@ void main() {
                     vec4 emiscolor = compositedHit.emission;
 
                     float gloss = compositedHit.specularGlossiness.w; // roughness
-                    float spwr = max3_vec(compositedHit.specularGlossiness.xyz); // specular power
-                    vec3 speccolor = clamp01(compositedHit.specularGlossiness.xyz / precIssue(spwr));
+                    float spwr = clamp01(precIssue(max3_vec(compositedHit.specularGlossiness.xyz))); // specular power
+                    vec3 speccolor = clamp01(compositedHit.specularGlossiness.xyz / spwr);
 
                     // coefficents
                     float prom = clamp01(1.f - diffcolor.w); // transmission power
-                    float spca = clamp01(spwr); // power of specularity
+                    float spca = spwr; // power of specularity
 
                     // if environment shaded, do by defaultly as transaparent, by inactive
                     if ( rayState == 3 || rayState == 1 ) prom = 1.0f;
@@ -242,9 +248,12 @@ void main() {
                     RayRework enrollRay = envShading(currentRay, overflow);
 
                     // binarize/quantize specular and transparency
+#ifndef SIMPLE_RT_MODE
+                    float dpwr = max3_vec(diffcolor.xyz);
+                    equatePowers(speccolor.xyz, diffcolor.xyz, spca, dpwr);
+#endif
+
                     float qprom = qrand(prom), qspca = qrand(spca);
-
-
                     RayRework finalRay = enrollRay;
 
                     { // transparent rays 
@@ -263,27 +272,19 @@ void main() {
                     // TODO: approximate indirect diffuses
 
                     // occopy 64 byte (64kb)
+#ifdef SIMPLE_RT_MODE
+                    RayRework 
+                        diffuseRay = diffuse(enrollRay, 0.f.xxx * diffcolor.xyz * (1.f - spca) * (1.f - qprom), tbn),
+                        reflectionRay = reflection(enrollRay, speccolor.xyz * spca * (1.f - qprom), tbn, gloss);
+#else
                     RayRework 
                         diffuseRay = diffuse(enrollRay, diffcolor.xyz * (1.f - qspca) * (1.f - qprom), tbn),
                         reflectionRay = reflection(enrollRay, speccolor.xyz * qspca * (1.f - qprom), tbn, gloss);
+#endif
 
                     // pre-filtering of quant rays
                     invalidateRay(diffuseRay, false);
                     invalidateRay(reflectionRay, false);
-
-                    // if diffuse ray can't done own role, give to reflection 
-                    if (!SSC(RayActived(diffuseRay)) /*&& qspca < 0.00001f*/) {
-                        qspca = spca;
-                        reflectionRay = reflection(enrollRay, speccolor.xyz / precIssue(spca) * qspca * (1.f - qprom), tbn, gloss);
-                        invalidateRay(reflectionRay, false);
-                    }
-
-                    // if reflection ray can't done own role, give to diffuse 
-                    if (!SSC(RayActived(reflectionRay)) /*&& qspca > 0.99999f*/) { 
-                        qspca = spca;
-                        diffuseRay = diffuse(enrollRay, diffcolor.xyz / precIssue(1.f - spca) * (1.f - qspca) * (1.f - qprom), tbn);
-                        invalidateRay(diffuseRay, false);
-                    }
 
                     // choice what ray will heading
                     if (SSC(RayActived(diffuseRay)) && max3_vec(f16_f32(diffuseRay.dcolor).xyz) >= 0.00001f) finalRay = diffuseRay;
@@ -313,20 +314,13 @@ void main() {
                         WriteColor(envRay.dcolor, f16_f32(envRay.dcolor) * qprom ); // shadows dims 
                         IF (RayActived(envRay)) WriteColor(envRay.dcolor, 0.0f.xxxx); // any actives inaccessible
                         RayActived(envRay, false_);
-                        //invokeBlockForNodes(envRay, envBlock, overwriteBlock);
                     }
                     
-                    { 
+                    {
                         // PBR emissions
                         emRay = emissive(enrollRay, emiscolor.xyz * (1.f - qprom), tbn);
-
-#ifdef SIMPLE_RT_MODE
-                        // if you want use simple mode with correct reflection coefficents, uncomment this line
-                        WriteColor(emRay.dcolor, f16_f32(emRay.dcolor) * (1.f - spca));
-#endif
-
                         IF (RayActived(emRay)) WriteColor(emRay.dcolor, 0.0f.xxxx); // any actives inaccessible
-                        //invokeBlockForNodes(emRay, emissionBlock, overwriteBlock);
+                        RayActived(emRay, false_);
                     }
 
                     // final emission
