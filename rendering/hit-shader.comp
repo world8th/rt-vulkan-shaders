@@ -302,7 +302,7 @@ void main() {
             vec4 diffuseWithEmission = emission.xyzw + simpleDiffuse;
             
             hitp.albedo = vec4(0.f, 0.f, 0.f, diffuse.w);
-            hitp.emission.xy = diffuseWithEmission;
+            hitp.emission = diffuseWithEmission;
             hitp.specularGlossiness = vec4(specularGlossiness.xyz, 0.f);
 #endif
 
