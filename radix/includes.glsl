@@ -20,12 +20,12 @@ uint Wave_Idx = 0;
 #define BITS_PER_PASS 4
 #define RADICES 16
 #define RADICES_MASK 0xf
-#define AFFINITION 1 // hyper-threaded powers
+#define AFFINITION 16 // hyper-threaded powers
 
 // general work groups
 #define BLOCK_SIZE (Wave_Size * RADICES / AFFINITION) // how bigger block size, then more priority going to radices (i.e. BLOCK_SIZE / Wave_Size)
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
-#define WRK_SIZE_RT ((gl_WorkGroupSize.x / Wave_Size_RT) * gl_NumWorkGroups.y)
+#define WRK_SIZE_RT ((BLOCK_SIZE_RT/Wave_Size_RT) * gl_NumWorkGroups.y)
 
 #define uvec_wave uint
 #define bvec_wave bool
