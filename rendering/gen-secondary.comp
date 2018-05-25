@@ -285,18 +285,19 @@ void main() {
                     invalidateRay(diffuseRay, false);
                     invalidateRay(reflectionRay, false);
 
-                    // choice what ray will heading
-#ifdef USE_TRUE_METHOD
-                    invokeBlockForNodes(reflectionRay, reflectionBlock, overwriteBlock);
-                    invokeBlockForNodes(diffuseRay, diffuseBlock, overwriteBlock);
-#else
-                    if (SSC(RayActived(reflectionRay)) && max3_vec(f16_f32(reflectionRay.dcolor).xyz) >= 0.00001f) finalRay = reflectionRay;
+                    // make sure if diffuse exist
+#ifndef USE_TRUE_METHOD
                     if (SSC(RayActived(diffuseRay)) && max3_vec(f16_f32(diffuseRay.dcolor).xyz) >= 0.00001f) finalRay = diffuseRay;
 #endif
 
-                    { // diffuse rays from surface
-                        invokeBlockForNodes(finalRay, diffuseBlock, overwriteBlock);
-                    }
+                    // make sure of reflection/transparency exist, and push ray block
+                    if (SSC(RayActived(reflectionRay)) && max3_vec(f16_f32(reflectionRay.dcolor).xyz) >= 0.00001f) finalRay = reflectionRay;
+                    invokeBlockForNodes(finalRay, reflectionBlock, overwriteBlock);
+
+                    // push diffuses separatly
+#ifdef USE_TRUE_METHOD
+                    invokeBlockForNodes(diffuseRay, diffuseBlock, overwriteBlock);
+#endif
 
                     { // shadow rays from surface
                         RayRework shadowRay = directLight(0, enrollRay, clamp01(diffcolorRef * (1.f - prom)), tbn);

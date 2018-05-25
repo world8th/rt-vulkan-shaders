@@ -34,7 +34,6 @@
 //#define EXPERIMENTAL_DOF // no dynamic control supported
 #define ENABLE_PT_SUNLIGHT
 #define DIRECT_LIGHT_ENABLED
-//#define USE_OPTIMIZED_PT
 //#define SIMPLE_RT_MODE
 //#define USE_TRUE_METHOD
 
