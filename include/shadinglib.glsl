@@ -156,11 +156,7 @@ RayRework reflection(in RayRework ray, in vec3 color, in mat3 tbn, in float glos
 #ifdef DISABLE_REFLECTIONS
     const int caustics_bounces = 0, reflection_bounces = 0; gloss = 0.f;
 #else
-    #ifdef USE_OPTIMIZED_PT
-        const int caustics_bounces = 0, reflection_bounces = 1;
-    #else
-        const int caustics_bounces = 0, reflection_bounces = 2;
-    #endif
+    const int caustics_bounces = 0, reflection_bounces = 2;
 #endif
 
     //if ( RayType(ray) == 3 ) RayDL(ray, true_); // allow direct speculars

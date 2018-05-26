@@ -34,8 +34,10 @@
 //#define EXPERIMENTAL_DOF // no dynamic control supported
 #define ENABLE_PT_SUNLIGHT
 #define DIRECT_LIGHT_ENABLED
-//#define SIMPLE_RT_MODE
-//#define USE_TRUE_METHOD
+
+#define SIMPLE_RT_MODE
+#define USE_TRUE_METHOD
+//#define DISABLE_REFLECTIONS
 
 // sampling options
 //#define MOTION_BLUR

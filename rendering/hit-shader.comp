@@ -297,10 +297,11 @@ void main() {
 
 #ifdef SIMPLE_RT_MODE
             // simple mode (alternate)
-            vec4 simpleDiffuse = vec4(diffuse.xyz * max(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)) * vec3(3.f.xxx), 0.f), 1.f);
+            float spwr = clamp01(max3_vec(specularColor.xyz));
+            vec4 simpleDiffuse = vec4(diffuse.xyz * max(dot(hitp.normalHeight.xyz, normalize(lightCenter(0).xyz - rorigin.xyz)) * vec3(3.f.xxx), 0.f), 1.f) * (1.f - spwr);
             simpleDiffuse *= 1.f - max3_vec(specularColor.xyz);
             vec4 diffuseWithEmission = emission.xyzw + simpleDiffuse;
-            
+
             hitp.albedo = vec4(0.f, 0.f, 0.f, diffuse.w);
             hitp.emission = diffuseWithEmission;
             hitp.specularGlossiness = vec4(specularGlossiness.xyz, 0.f);
