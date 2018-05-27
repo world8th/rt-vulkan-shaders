@@ -227,7 +227,7 @@ void main() {
 
                     float spwr = clamp01(max3_vec(speccolor.xyz)); // specular power
                     float dpwr = clamp01(max3_vec(diffcolor.xyz));
-                    float prio = clamp01(spwr + (1.f - dpwr) * (1.f - spwr));//clamp01(max(min(spwr / dpwr, 0.85f), spwr));
+                    float prio = clamp01(spwr + (1.f - dpwr) * (1.f - spwr));
 
                     // accurate version (no extra divison)
                     vec3 speccolorRef = speccolor.xyz;                // no extra divion and multiply with "prior"
