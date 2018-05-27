@@ -3,6 +3,7 @@
 
 // THIS shader now not part of ray tracing pipeline - it part of BVH processing system
 
+#define ENABLE_VERTEX_INTERPOLATOR
 #define USE_SINGLE_THREAD_RAY_MANAGMENT
 #define SIMPLIFIED_RAY_MANAGMENT
 #define DISCARD_SHARED_CACHING // store rays in registers if possible
@@ -22,6 +23,8 @@
 #include "./submodules/traverse-bvh2.glsl"
 
 LOCAL_SIZE_LAYOUT;
+
+#define cray unorderedRays[hit.rayID-1]
 
 void main() {
     int wsize = PREPARED_COUNT;
@@ -71,6 +74,10 @@ void main() {
                     hit.tangent = vec4(0.f);
                     hit.bitangent = vec4(0.f);
                     hit.texcoord = vec4(0.f);
+#ifdef ENABLE_VERTEX_INTERPOLATOR
+                    hit.rayID = cray.uindex.x;
+                    interpolateMeshData(hit);
+#endif
                     hits[hid] = hit;
 
                     // link hit
