@@ -29,6 +29,8 @@ void main() {
     int wcount = min(tiled(wsize, int(gl_WorkGroupSize.x)), 1000000);
     bool overflow = false;
     int wgs = int(gl_NumWorkGroups);
+
+    LGROUP_BARRIER;
     for (int w=0;w<wcount;w+=wgs) {
         SB_BARRIER
         int globalID = (w + int(gl_WorkGroupID.x)) * int(gl_WorkGroupSize.x) + int(gl_LocalInvocationID.x);
@@ -70,4 +72,5 @@ void main() {
         }
     }
     
+    LGROUP_BARRIER;
 }
