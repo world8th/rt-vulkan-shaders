@@ -78,4 +78,6 @@ void main() {
             idx = (pid >= 0 && atomicCompSwap(Flags[pid], 0, 1) == 1) ? pid : -1;
         }
     }
+
+    LGROUP_BARRIER
 }

@@ -99,4 +99,6 @@ void main() {
             Histogram[radice + RADICES * gl_WorkGroupID.x] = localHistogram[radice];
         }
     }
+
+    LGROUP_BARRIER
 }

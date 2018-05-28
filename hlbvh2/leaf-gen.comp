@@ -94,4 +94,6 @@ void main() {
             MortoncodesIndices[to] = to+1;
         }
     }
+
+    LGROUP_BARRIER
 }

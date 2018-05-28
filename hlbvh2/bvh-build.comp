@@ -114,4 +114,6 @@ void main() {
         cCounter = _counters[2];
         aCounter2 = 0;
     }
+
+    LGROUP_BARRIER
 }

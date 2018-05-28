@@ -66,4 +66,6 @@ void main() {
             if (Local_Idx < RADICES) PrefixSum[Local_Idx + RADICES * wk] += rdcAwPrefixOffset;
         }
     }
+
+    LGROUP_BARRIER
 }

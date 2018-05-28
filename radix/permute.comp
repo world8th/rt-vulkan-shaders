@@ -99,4 +99,6 @@ void main() {
         addr += Wave_Size_RT;
 #endif
     }
+
+    LGROUP_BARRIER
 }

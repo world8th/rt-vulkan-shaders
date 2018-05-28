@@ -68,5 +68,5 @@ void main() {
     }
 
     // sync BVH splitting
-    //LGROUP_BARRIER
+    LGROUP_BARRIER
 }
