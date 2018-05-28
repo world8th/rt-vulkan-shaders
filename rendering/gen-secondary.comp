@@ -230,12 +230,12 @@ void main() {
                     float prio = clamp01(spwr + (1.f - dpwr) * (1.f - spwr));
 
                     // accurate version (no extra divison)
-                    vec3 speccolorRef = speccolor.xyz;                // no extra divion and multiply with "prior"
-                    vec3 diffcolorRef = diffcolor.xyz * (1.f - spwr); // no extra divion and multiply with "prior"
+                    vec3 speccolorRef = clamp01(speccolor.xyz);                // no extra divion and multiply with "prior"
+                    vec3 diffcolorRef = clamp01(diffcolor.xyz * (1.f - spwr)); // no extra divion and multiply with "prior"
 
                     // correction coefficents (may inaccurate in most cases)
-                    speccolor.xyz *= (1.f / prio);
-                    diffcolor.xyz *= (1.f - spwr) / (1.f - prio);
+                    speccolor.xyz = clamp01(speccolor.xyz * (1.f / prio));
+                    diffcolor.xyz = clamp01(diffcolor.xyz * (1.f - spwr) / (1.f - prio));
 
                     // coefficents
                     float prom = 1.f - diffcolor.w; // transmission power
