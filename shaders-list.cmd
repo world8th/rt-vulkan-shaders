@@ -30,6 +30,7 @@ start /b /wait glslangValidator %CFLAGSV% %INDIR%%HLBV%bvh-build-large.comp     
 start /b /wait glslangValidator %CFLAGSV% %INDIR%%HLBV%bvh-fit.comp       -o %OUTDIR%%HLBV%bvh-fit.comp.spv
 start /b /wait glslangValidator %CFLAGSV% %INDIR%%HLBV%leaf-gen.comp      -o %OUTDIR%%HLBV%leaf-gen.comp.spv
 start /b /wait glslangValidator %CFLAGSV% %INDIR%%HLBV%leaf-link.comp     -o %OUTDIR%%HLBV%leaf-link.comp.spv
+start /b /wait glslangValidator %CFLAGSV% %INDIR%%HLBV%shorthand.comp     -o %OUTDIR%%HLBV%shorthand.comp.spv
 start /b /wait glslangValidator %CFLAGSV% %INDIR%%RDXI%permute.comp       -o %OUTDIR%%RDXI%permute.comp.spv
 start /b /wait glslangValidator %CFLAGSV% %INDIR%%RDXI%histogram.comp     -o %OUTDIR%%RDXI%histogram.comp.spv
 start /b /wait glslangValidator %CFLAGSV% %INDIR%%RDXI%pfx-work.comp      -o %OUTDIR%%RDXI%pfx-work.comp.spv
